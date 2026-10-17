@@ -1,0 +1,557 @@
+PHASE 2 — ANALYZE THE “RESEARCH PAPER BY COMPANY” FOLDER
+
+The previous phases have already established the following analysis sequence:
+
+"
+PHASE 0
+ECUlytics_TrustSense_Battery_Analytics_Internship_Handbook.pdf
+        ↓
+PHASE 1
+Documentation By Yash for College Showcase
+"
+
+Now proceed to:
+
+"
+PHASE 2
+Research Paper By Company
+"
+
+The folder to analyze is:
+
+"
+Research Paper By Company
+"
+
+IMPORTANT PURPOSE OF THIS PHASE
+
+The research papers in this folder are being provided FOR REFERENCE ONLY.
+
+They are not automatically project requirements.
+
+They must not override, replace, or modify the requirements established by:
+
+"
+ECUlytics_TrustSense_Battery_Analytics_Internship_Handbook.pdf
+"
+
+and they must not be treated as confirmed product requirements merely because a research paper discusses a particular approach.
+
+The objective is to understand the relevant research, methodologies, techniques, terminology, findings, limitations, and possible ideas that can help us make better engineering decisions later.
+
+DO NOT:
+
+* Start coding.
+* Modify any project files.
+* Implement any research-paper method.
+* Treat research-paper recommendations as mandatory requirements.
+* Copy an architecture directly from a paper without evaluating whether it fits our project.
+* Assume that a published result will work on our datasets or battery configuration.
+* Add technologies, algorithms, or features solely because they appear in a paper.
+
+This phase is strictly research understanding and technical reference analysis.
+
+1. INSPECT THE ENTIRE FOLDER
+
+Thoroughly inspect:
+
+"
+Research Paper By Company
+"
+
+and all of its contents.
+
+Analyze every relevant:
+
+* Research paper
+* PDF
+* Technical publication
+* Journal article
+* Conference paper
+* Whitepaper
+* Research report
+* Supporting document
+* Diagram
+* Dataset description
+* Experimental result
+* Methodology document
+* Reference material
+
+Do not rely only on filenames or titles.
+
+Read the actual content of each important research paper sufficiently to understand its contribution and relevance.
+
+2. BUILD A RESEARCH PAPER INVENTORY
+
+Create a structured inventory.
+
+For every important research paper, identify:
+
+"
+Paper Title
+Authors / Organization
+Publication Context
+Research Problem
+Research Objective
+Domain
+Methodology
+Algorithms / Models
+Datasets
+Inputs
+Outputs
+Experimental Setup
+Evaluation Metrics
+Key Findings
+Limitations
+Assumptions
+Relevant Concepts
+Potential Relevance to TrustSense-BMS
+"
+
+Do not merely summarize abstracts.
+
+Focus on understanding what was actually done and under what conditions.
+
+3. UNDERSTAND THE RESEARCH PROBLEM
+
+For every major paper, explain:
+
+1. What problem does the paper solve?
+2. Why is that problem important?
+3. What assumptions does the research make?
+4. What data does it require?
+5. What system/environment was it tested in?
+6. What methodology was used?
+7. What were the major results?
+8. What are the limitations?
+9. What aspects are directly relevant to our project?
+10. What aspects are not relevant to our project?
+
+Keep the analysis grounded in the paper.
+
+4. EXTRACT TECHNICAL KNOWLEDGE
+
+Identify useful technical knowledge from the papers, such as:
+
+Battery / Thermal
+
+* Battery thermal behavior
+* Electro-thermal modeling
+* Temperature prediction
+* Thermal field reconstruction
+* Sensor placement
+* Sensor reduction
+* Hotspot detection
+* Thermal networks
+* Battery parameter estimation
+
+AI / ML
+
+* Feature engineering
+* Time-series modeling
+* Deep learning
+* CNN
+* LSTM
+* TCN
+* Transformer
+* GNN
+* PINN
+* Hybrid physics + ML
+* Uncertainty estimation
+* Transfer learning
+* Anomaly detection
+
+Cybersecurity
+
+* CAN/CAN-FD security
+* Intrusion detection
+* Sensor spoofing
+* Replay
+* Injection
+* DoS/flooding
+* Fuzzing
+* Stealth manipulation
+* Fault-versus-attack discrimination
+* Adversarial ML
+
+Data / Systems
+
+* Dataset preparation
+* Simulation
+* Synthetic data
+* Data splitting
+* Validation
+* Model evaluation
+* Deployment
+* Real-time inference
+
+Only include concepts actually supported by the research material.
+
+5. COMPARE RESEARCH APPROACHES
+
+Where multiple papers address similar problems, compare them.
+
+For example:
+"
+Research Problem
+       ↓
+Paper A Method
+Paper B Method
+Paper C Method
+       ↓
+Advantages
+Limitations
+Data Requirements
+Computational Cost
+Interpretability
+Generalization
+Potential Applicability
+"
+
+Identify where research approaches agree and where they differ.
+
+Do not select a method yet unless the evidence strongly supports a conclusion.
+
+6. ANALYZE DATASETS AND EXPERIMENTAL CONDITIONS
+
+For every relevant paper, identify:
+
+* Dataset source
+* Dataset size where available
+* Battery chemistry
+* Battery format / geometry
+* Number of cells
+* Sensor configuration
+* Sampling frequency
+* Operating conditions
+* Temperature conditions
+* Charging/discharging profiles
+* Ageing conditions
+* Fault conditions
+* Cyberattack conditions
+* Simulation versus real-world data
+* Training/test strategy
+* Generalization conditions
+
+This is critical because a method that works in one experimental setup may not transfer to our project.
+
+Explicitly identify such limitations.
+
+
+7. ANALYZE PERFORMANCE CLAIMS CAREFULLY
+
+Do not simply record claims such as:
+
+"
+Accuracy = 99%
+RMSE = 0.5°C
+F1 = 0.98
+"
+
+Instead determine:
+
+* What was measured?
+* On what dataset?
+* How was the dataset split?
+* Was the test set truly independent?
+* Was cross-cell or cross-cycle validation used?
+* Was cross-chemistry evaluation performed?
+* Was there data leakage risk?
+* Were baselines included?
+* Was uncertainty evaluated?
+* Was real-time latency measured?
+* Were failure cases reported?
+
+The purpose is to understand how credible and transferable the result is, not just to repeat the reported number.
+
+8. IDENTIFY METHODS THAT MAY BE RELEVANT
+
+Create a section called:
+
+"Potentially Useful Research Approaches"
+
+For each approach, explain:
+
+"
+Approach
+Research Evidence
+What Problem It Addresses
+Advantages
+Limitations
+Required Data
+Potential Fit for TrustSense-BMS
+Validation Still Needed
+"
+
+Use language such as:
+
+"
+Potential candidate
+Worth evaluating
+Relevant reference
+Requires validation
+Not currently justified
+"
+
+Do not call something a final architecture or final technology choice.
+
+9. IDENTIFY RESEARCH GAPS
+
+This is a very important part.
+
+Determine what the research papers do not solve.
+
+Look for:
+
+* Missing real-world validation
+* Limited dataset diversity
+* Limited battery chemistry coverage
+* Small sample size
+* Limited pack-scale testing
+* Missing uncertainty analysis
+* Limited fault isolation
+* Weak cybersecurity evaluation
+* Lack of cross-domain validation
+* Lack of provenance
+* Lack of explainability
+* Lack of reproducibility
+* Lack of deployment evidence
+* Unrealistic assumptions
+* Limited sensor-reduction analysis
+
+The purpose is to understand where the existing research ends and where our project may need additional engineering work.
+
+10. MAP RESEARCH TO TRUSTSENSE-BMS
+
+Compare the research findings against the project defined in the handbook.
+
+Use a mapping such as:
+
+"
+Research Finding
+        ↓
+TrustSense-BMS Problem
+        ↓
+Relevant Work Package
+        ↓
+Potential Contribution
+        ↓
+Evidence Strength
+        ↓
+Validation Required
+"
+
+Map research where relevant to:
+
+"
+Intern 1
+Virtual sensing / thermal analytics / sensor placement
+
+Intern 2
+Cybersecurity / CAN / anomaly detection / fault-attack discrimination
+
+Intern 3
+Blockchain / provenance / RAG / trusted battery intelligence
+"
+
+Do not force a mapping when there is no meaningful relationship.
+
+11. IMPORTANT — DISTINGUISH RESEARCH FROM REQUIREMENTS
+
+Create a strict separation between:
+
+Confirmed Project Requirement
+
+Supported by the handbook or validated project documentation.
+
+Research Reference
+
+A method, finding, idea, architecture, or technique described by an external/company research paper.
+
+Potential Future Approach
+
+A research idea that may be evaluated later.
+
+Assumption
+
+Something that appears plausible but is not yet validated.
+
+Open Question
+
+Something the research does not answer and that we must determine later.
+
+This distinction must be preserved throughout the analysis.
+
+12. DO NOT FORCE RESEARCH INTO THE PROJECT
+
+The goal is not to make our project look like the research papers.
+
+The goal is to learn from the research and determine:
+
+"
+What can we learn?
+What can we reuse conceptually?
+What should we test?
+What should we avoid?
+What remains unsolved?
+What requires adaptation?
+"
+
+A research-paper approach should only influence future implementation after it has been evaluated against:
+
+* Our actual project requirements
+* Available datasets
+* Available compute
+* Battery domain constraints
+* Safety constraints
+* Cybersecurity constraints
+* Performance requirements
+* Reproducibility requirements
+* Integration requirements
+
+13. IDENTIFY TERMINOLOGY AND CONCEPTS WE NEED TO UNDERSTAND
+
+Create a consolidated research glossary where necessary.
+
+For example:
+
+"
+Concept
+Definition
+Where it is used
+Why it matters to our project
+"
+
+This glossary should help us build a shared technical understanding before implementation.
+
+
+14. CREATE A RESEARCH EVIDENCE MATRIX
+
+Create a matrix similar to:
+
+"
+Research Area
+Paper
+Problem Addressed
+Method
+Dataset
+Result
+Limitation
+TrustSense Relevance
+Confidence / Evidence Strength
+"
+
+"Use this matrix to prevent unsupported technology decisions later."
+
+
+15. FINAL RESEARCH SYNTHESIS
+
+After analyzing the entire folder, provide a consolidated synthesis containing:
+
+A. What the research collectively tells us
+
+Summarize the strongest technical knowledge obtained from all papers.
+
+B. Important methods
+
+Identify the major approaches worth remembering for later.
+
+C. Strongest evidence
+
+Identify which findings have the strongest support and under what conditions.
+
+D. Important limitations
+
+Identify the limitations that prevent direct adoption.
+
+E. Research gaps
+
+Identify areas where additional engineering or experimentation will be necessary.
+
+F. Potentially relevant ideas for our project
+
+Identify ideas that may later influence architecture or modeling.
+
+G. Ideas that should NOT be adopted without validation
+
+Clearly identify approaches that look attractive but have insufficient evidence for direct adoption.
+
+H. Questions that remain unanswered
+
+Identify questions that must be resolved using our own requirements, data, experimentation, or additional research.
+
+
+
+16. REQUIRED OUTPUT
+
+Produce a comprehensive:
+
+
+"PHASE 2 — COMPANY RESEARCH PAPER ANALYSIS REPORT"
+
+with at least the following sections:
+
+1. Executive Summary
+2. Complete Research Paper Inventory
+3. Paper-by-Paper Analysis
+4. Research Problems & Objectives
+5. Technical Methods Identified
+6. Datasets & Experimental Conditions
+7. Performance & Evaluation Analysis
+8. Method Comparison
+9. Research Limitations
+10. Research Gaps
+11. TrustSense-BMS Relevance Mapping
+12. Potentially Useful Approaches
+13. Concepts Requiring Further Validation
+14. Research Glossary
+15. Research Evidence Matrix
+16. Key Takeaways
+17. Open Questions
+18. Implications for Future Project Design
+
+FINAL RULE
+
+This entire phase is REFERENCE ANALYSIS ONLY.
+
+The research papers:
+
+"
+DO NOT become requirements automatically.
+DO NOT become architecture automatically.
+DO NOT become implementation instructions.
+DO NOT override the handbook.
+DO NOT justify adding technology without evaluation.
+"
+
+Instead:
+
+"
+Research Papers
+       ↓
+Understand Existing Research
+       ↓
+Extract Evidence
+       ↓
+Understand Methods
+       ↓
+Understand Limitations
+       ↓
+Compare Approaches
+       ↓
+Identify Useful Ideas
+       ↓
+Identify Research Gaps
+       ↓
+Store Knowledge for Future Decisions
+"
+
+Do not start development after this phase.
+
+Do not finalize architecture after this phase.
+
+Do not select the final ML model after this phase.
+
+The purpose of Phase 2 is simply to ensure that when we eventually design and build ECUlytics / TrustSense-BMS, our technical decisions are informed by relevant research rather than made from assumptions or trends.
+
+After this phase is complete, we will continue with the next project-analysis stage only after all required reference material has been understood.

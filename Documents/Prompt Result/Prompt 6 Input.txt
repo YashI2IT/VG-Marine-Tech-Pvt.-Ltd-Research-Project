@@ -1,0 +1,987 @@
+# PHASE 4 — DATASET ANALYSIS AND VALIDATION STRATEGY FOR VIRTUAL TEMPERATURE SENSOR
+
+We have already completed the following project-understanding phases:
+
+```text id="h9r8qk"
+PHASE 0
+ECUlytics_TrustSense_Battery_Analytics_Internship_Handbook.pdf
+        ↓
+PHASE 1
+Documentation By Yash for College Showcase
+        ↓
+PHASE 2
+Research Paper By Company
+        ↓
+PHASE 3
+V1 Thermal Management Platform Analysis
+        ↓
+PHASE 4
+Dataset Analysis
+```
+
+The current task is specifically focused on the **`Dataset/` folder** and the datasets intended to support the **virtual temperature sensor / thermal-management module**.
+
+## CRITICAL SCOPE
+
+For this phase:
+
+* Focus only on the **thermal-management / virtual-temperature-sensor** data problem.
+* Do not start model training.
+* Do not write production code.
+* Do not create APIs.
+* Do not create frontend/backend components.
+* Do not finalize the final CNN-LSTM architecture.
+* Do not modify, delete, rename, or reorganize the dataset files.
+* Do not assume that filenames correctly describe the data.
+* Inspect the actual contents and metadata of the datasets.
+
+The purpose of this phase is to establish a **verified, reproducible data foundation** before implementation.
+
+---
+
+# 1. ANALYZE THE COMPLETE `Dataset/` FOLDER
+
+Thoroughly inspect the complete:
+
+```text id="1dy3cm"
+Dataset/
+```
+
+folder.
+
+Analyze:
+
+* Every dataset file
+* Every CSV
+* Excel file
+* JSON
+* Parquet
+* MAT file
+* metadata file
+* README
+* documentation file
+* configuration file
+* supporting artifact
+* directory structure
+
+For every dataset/file, determine:
+
+```text id="p9xwca"
+Filename
+Format
+Source
+Dataset / Study
+Battery chemistry
+Cell / pack type
+Number of cells
+Signals
+Units
+Sampling rate
+Duration
+Operating conditions
+Temperature conditions
+Cycle information
+Ageing information
+Fault information
+Missing values
+Potential target variables
+Potential input variables
+Data quality issues
+```
+
+Do not infer these values from the filename alone.
+
+---
+
+# 2. VERIFY THE KNOWN DATA SOURCES
+
+The current proposed data sources are:
+
+### Panasonic
+
+```text
+https://data.mendeley.com/datasets/wykht8y7tg/1
+```
+
+Target cell:
+
+```text
+Panasonic 18650PF
+```
+
+### Oxford
+
+```text
+https://ora.ox.ac.uk/objects/uuid:03ba4b01-cfed-46d3-9b1a-7d4a7bdf6fac
+```
+
+### NASA
+
+```text
+https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/
+```
+
+Verify the relationship between the local files and these source datasets.
+
+For each source, determine:
+
+```text id="ou4z7m"
+Official Source
+        ↓
+Dataset Version
+        ↓
+Local File
+        ↓
+Local Coverage
+        ↓
+Differences
+        ↓
+Missing Data
+        ↓
+Potential Usage
+```
+
+Do not assume that the local folder contains the complete official dataset.
+
+---
+
+# 3. PANASONIC DATA — PRIMARY CNN-LSTM REFERENCE DATASET
+
+The Panasonic dataset is intended to be the **primary dataset for the initial CNN-LSTM implementation and benchmarking**.
+
+The current proposed signal mapping is:
+
+```text id="4pvk69"
+Voltage                → V
+Current                → I
+Chamber_Temp_degC      → Tamb
+Ah / Current integral  → Qacc
+Battery_Temp_degC      → TARGET: Surface Temperature
+```
+
+Verify every one of these mappings against the actual files.
+
+Do not assume the mapping is correct.
+
+For each signal, determine:
+
+```text id="k1jz2q"
+Actual column name
+Meaning
+Unit
+Sampling rate
+Data type
+Missing-data behavior
+Typical range
+Outliers
+Sign convention
+Whether derived or measured
+Whether appropriate for model input
+```
+
+If the dataset contains additional useful signals, identify them separately as:
+
+```text
+Potential Additional Signal
+```
+
+Do not automatically add them to the model.
+
+---
+
+# 4. PANASONIC TARGET DEFINITION
+
+The proposed CNN-LSTM target is:
+
+```text id="0m3j7m"
+Battery_Temp_degC
+        ↓
+Surface Temperature
+```
+
+Verify precisely what this temperature represents.
+
+Determine:
+
+* Surface temperature or another measured temperature
+* Sensor location
+* Sensor response characteristics
+* Whether it represents the cell surface
+* Whether it can be treated as the ground-truth target
+* Whether multiple temperature channels exist
+* Whether temperature is synchronized with voltage/current
+* Whether the target has missing segments
+
+Document any ambiguity.
+
+This distinction is important because the TrustSense project ultimately concerns **virtual temperature sensing and thermal-field inference**, not generic temperature prediction.
+
+---
+
+# 5. PANASONIC OPERATING-PROFILE SPLIT
+
+The proposed data split is:
+
+## TRAINING
+
+```text id="v2knf5"
+UDDS @ 25 °C
+HWFET @ 25 °C
+US06 @ 10 °C
+Cycle1 @ 0 °C
+Cycle2 @ -10 °C
+Mixed Cycle1
+Mixed Cycle2
+```
+
+## VALIDATION
+
+```text id="v7cz1n"
+LA92 @ 25 °C
+HWFET @ 10 °C
+```
+
+## TEST SET 1
+
+```text id="4mgs8n"
+UDDS @ -10 °C
+```
+
+## TEST SET 2
+
+```text id="j0y9th"
+US06 @ unseen temperature
+```
+
+## TEST SET 3
+
+```text id="6p3myv"
+Temperature-rise cycle
+Ambient temperature varies with time
+```
+
+### IMPORTANT
+
+Verify whether the actual Panasonic dataset contains these exact profiles and temperature conditions.
+
+Do not assume the proposed split is directly possible until the raw data is inspected.
+
+If some profiles or temperatures do not exist, document the mismatch and recommend the closest defensible alternative.
+
+---
+
+# 6. CHECK DATA-LEAKAGE RISKS
+
+This is mandatory.
+
+Determine whether the proposed train/validation/test split can create leakage through:
+
+* Random row splitting
+* Same drive cycle appearing in multiple splits
+* Same battery/cell appearing in multiple correlated partitions
+* Overlapping sequence windows
+* Normalization fitted using test data
+* Feature engineering using future information
+* Duplicate measurements
+* Repeated operating profiles
+* Interpolation across train/test boundaries
+
+The final pipeline must prevent leakage.
+
+The handbook specifically requires time-series splitting by appropriate units such as cell, cycle, vehicle, operating profile or experiment.
+
+Therefore determine the correct splitting unit for this dataset.
+
+---
+
+# 7. CHECK TIME-SERIES CHARACTERISTICS
+
+Analyze:
+
+* Timestamp availability
+* Sampling interval
+* Sampling regularity
+* Missing timestamps
+* Duplicate timestamps
+* Time synchronization
+* Sequence length
+* Thermal response delay
+* Current-to-temperature lag
+* Voltage-to-temperature relationship
+* Ambient-temperature variation
+
+Determine whether resampling is required.
+
+If resampling is required, define:
+
+```text id="6wn7ef"
+Original sampling
+        ↓
+Synchronization
+        ↓
+Resampling strategy
+        ↓
+Interpolation / missing-value handling
+        ↓
+Model-ready sequence
+```
+
+Do not implement this yet.
+
+---
+
+# 8. CHECK UNITS AND SIGN CONVENTIONS
+
+Verify:
+
+```text id="4nwh2b"
+Voltage        → V
+Current        → A
+Temperature    → °C
+Capacity/Qacc  → appropriate Ah unit
+Time           → seconds / milliseconds
+```
+
+Confirm the current sign convention.
+
+The handbook requires one documented current convention across all datasets and APIs.
+
+If Panasonic, Oxford and NASA use different conventions, identify the required normalization **conceptually**, without modifying the datasets yet.
+
+---
+
+# 9. Qacc / CURRENT INTEGRAL ANALYSIS
+
+The proposed feature:
+
+```text id="2z1m4g"
+Ah / Current integral → Qacc
+```
+
+must be carefully analyzed.
+
+Determine:
+
+* Whether Qacc already exists
+* How it is defined
+* Whether it is cumulative current integration
+* Starting point of integration
+* Reset behavior
+* Units
+* Sign convention
+* Whether it is equivalent across datasets
+* Whether it introduces leakage
+* Whether it requires recomputation
+
+Verify whether Qacc is a valid input for the virtual temperature sensor.
+
+Do not automatically use it simply because it is listed as a proposed feature.
+
+---
+
+# 10. FEATURE ENGINEERING ANALYSIS
+
+Determine what features are directly available versus what may later be derived.
+
+Possible derived features may include:
+
+```text
+Temperature history
+Current history
+Voltage history
+dI/dt
+dV/dt
+Temperature rate
+Ambient-temperature difference
+Current integral
+Estimated power
+C-rate
+Rolling statistics
+Thermal lag features
+```
+
+Classify each as:
+
+```text id="vjh5u4"
+Already Available
+Can Be Derived Safely
+Potentially Useful
+Potential Leakage Risk
+Not Currently Justified
+```
+
+Do not create features during this analysis stage.
+
+---
+
+# 11. DETERMINE THE ACTUAL TRAINING SAMPLE STRUCTURE
+
+For the CNN-LSTM approach, determine how the raw time-series data should conceptually become sequences.
+
+Analyze:
+
+```text id="pi5c2v"
+Continuous Time Series
+        ↓
+Input Window
+        ↓
+Sequence Length
+        ↓
+Prediction Horizon
+        ↓
+Target Temperature
+```
+
+Determine what information is required to decide:
+
+* sequence length
+* stride
+* prediction horizon
+* many-to-one vs many-to-many prediction
+* historical context
+* target alignment
+
+Do not arbitrarily select these values.
+
+Use the IEEE/reference paper methodology where available and explicitly identify any reproduction gaps.
+
+---
+
+# 12. OXFORD DATA ANALYSIS
+
+Analyze the Oxford dataset specifically for:
+
+```text id="e0osqw"
+Battery ageing
+Cell-to-cell / cell-to-cell-study variation
+Temperature behavior
+Operating conditions
+Capacity degradation
+Resistance/degradation indicators
+Available thermal signals
+Sequence structure
+Potential transfer-learning / external-validation use
+```
+
+The key question is:
+
+> Can the Oxford dataset provide a credible **aging/generalization validation** for a virtual-temperature model initially developed using Panasonic data?
+
+Determine what the Oxford dataset can and cannot validate.
+
+Do not assume direct feature compatibility.
+
+Create:
+
+```text id="m17cx3"
+Panasonic
+      ↓
+Oxford
+      ↓
+Feature compatibility
+      ↓
+Target compatibility
+      ↓
+Sampling compatibility
+      ↓
+Chemistry / cell compatibility
+      ↓
+Transfer-validation feasibility
+```
+
+---
+
+# 13. NASA DATA ANALYSIS
+
+Analyze the NASA battery dataset for:
+
+* Chemistry
+* Cell format
+* Temperature signals
+* Current
+* Voltage
+* Cycle information
+* Ageing information
+* Operating profiles
+* Available thermal signals
+* Sampling characteristics
+* Compatibility with Panasonic inputs
+* Compatibility with the virtual-temperature target
+
+Determine whether NASA can provide:
+
+```text id="zyjs4v"
+Additional chemistry robustness
+OR
+Ageing robustness
+OR
+Operating-profile robustness
+OR
+External validation
+```
+
+Do not assume that NASA can be used directly without preprocessing.
+
+---
+
+# 14. CROSS-DATASET COMPATIBILITY MATRIX
+
+Create a detailed matrix:
+
+```text id="fh2xp7"
+                     Panasonic      Oxford       NASA
+----------------------------------------------------------
+Voltage
+Current
+Ambient Temp
+Battery Temp
+Qacc
+SOC
+SOH
+Sampling Rate
+Time Format
+Chemistry
+Cell Type
+Cycle Data
+Ageing Data
+Thermal Data
+Target Compatibility
+Feature Compatibility
+```
+
+For each field classify:
+
+```text id="u8gsap"
+Directly Compatible
+Needs Transformation
+Not Available
+Unknown
+```
+
+This matrix will be critical for future model validation.
+
+---
+
+# 15. DEFINE DATASET ROLES
+
+Do not use all datasets interchangeably.
+
+Establish a clear role for each dataset.
+
+The current hypothesis is:
+
+```text id="z7x1vn"
+Panasonic
+        ↓
+Primary training / tuning / IEEE benchmarking
+
+Oxford
+        ↓
+Aging / different-cell external validation
+
+NASA
+        ↓
+Additional chemistry / aging / operating-profile robustness
+```
+
+Validate whether this strategy is actually defensible based on the datasets found.
+
+If not, explain the required change.
+
+---
+
+# 16. FINAL VALIDATION PATH
+
+Evaluate the proposed validation path:
+
+```text id="f1e1om"
+Panasonic 18650PF
+        ↓
+Train / tune CNN-LSTM
+        ↓
+Dynamic temperature validation
+        ↓
+PASS?
+        ↓
+Oxford dataset
+        ↓
+Aging / different-cell validation
+        ↓
+NASA dataset
+        ↓
+Additional chemistry / aging /
+operating-profile robustness
+```
+
+Determine whether this is a scientifically defensible validation sequence.
+
+Identify:
+
+* What Panasonic proves
+* What it does not prove
+* What Oxford adds
+* What NASA adds
+* What remains unvalidated
+* What additional data would eventually be needed
+
+---
+
+# 17. BENCHMARK AGAINST THE IEEE PAPER
+
+Use the IEEE paper methodology already analyzed in the previous phase as the primary benchmark reference.
+
+Determine:
+
+```text id="0q85ph"
+IEEE Dataset Setup
+        ↓
+Our Panasonic Dataset Setup
+        ↓
+Equivalent?
+        ↓
+If not:
+Adaptation Required
+```
+
+Compare:
+
+* Inputs
+* Target
+* Sampling
+* Sequence construction
+* Training split
+* Validation split
+* Test split
+* Metrics
+* Operating conditions
+* Battery type
+* Model configuration
+* Evaluation procedure
+
+The goal is to make the first experiment as comparable to the reference implementation as reasonably possible.
+
+Clearly distinguish:
+
+```text id="0d7lq6"
+Faithful Reproduction
+Adapted Reproduction
+New TrustSense Experiment
+```
+
+---
+
+# 18. DATA QUALITY REPORT
+
+Produce a professional data-quality assessment for every dataset.
+
+Include:
+
+```text id="3mzy6s"
+Missing values
+Duplicate rows
+Invalid values
+Outliers
+Unit inconsistencies
+Timestamp issues
+Sampling irregularity
+Sensor anomalies
+Unexpected ranges
+Data gaps
+Label quality
+Metadata completeness
+```
+
+Do not silently clean or overwrite the source data.
+
+The raw dataset must remain immutable.
+
+Any eventual preprocessing should generate a separate processed representation.
+
+---
+
+# 19. DATA PROVENANCE
+
+For every source dataset, identify:
+
+```text id="vqtg6x"
+Source URL
+Dataset title
+Version
+Access date
+License
+Citation
+Local filename
+File hash
+Processing version
+```
+
+The handbook requires raw datasets to remain immutable and documented with licenses/citations.
+
+The future experiment should be traceable to a specific dataset version and preprocessing configuration.
+
+---
+
+# 20. DEFINE THE FUTURE DATA PIPELINE
+
+Without implementing it, describe the intended pipeline:
+
+```text id="p6rwtq"
+Raw Dataset
+      ↓
+Immutable Raw Storage
+      ↓
+Dataset Verification
+      ↓
+Schema Validation
+      ↓
+Unit Normalization
+      ↓
+Time Alignment
+      ↓
+Quality Checks
+      ↓
+Feature Preparation
+      ↓
+Sequence Generation
+      ↓
+Leakage-Safe Split
+      ↓
+Processed Dataset
+      ↓
+CNN-LSTM / Baseline Experiments
+```
+
+Clearly identify where provenance metadata should be captured.
+
+---
+
+# 21. IMPORTANT — DO NOT MIX TRAINING AND EXTERNAL VALIDATION
+
+The Panasonic dataset is the initial development/reference dataset.
+
+Oxford and NASA should not be casually merged into Panasonic training data.
+
+First determine whether they are best used for:
+
+```text id="x0f4ec"
+External validation
+Transfer testing
+Stress testing
+Aging validation
+Cross-chemistry validation
+Additional training
+```
+
+The default assumption should be **external validation unless evidence supports merging**.
+
+---
+
+# 22. DETERMINE WHAT IS REQUIRED BEFORE MODEL TRAINING
+
+Create a checklist of prerequisites.
+
+For example:
+
+```text id="8l5ydk"
+Dataset verified
+✓
+Columns verified
+✓
+Units verified
+✓
+Target verified
+✓
+Sampling verified
+✓
+Time alignment verified
+✓
+Split strategy verified
+✓
+Leakage checks defined
+✓
+IEEE methodology mapped
+✓
+Benchmark metrics defined
+✓
+Panasonic data quality accepted
+✓
+Oxford compatibility assessed
+✓
+NASA compatibility assessed
+✓
+Provenance defined
+✓
+```
+
+Mark each item:
+
+```text id="rq5n8j"
+Ready
+Needs Investigation
+Blocked
+Unknown
+```
+
+---
+
+# 23. REQUIRED OUTPUT
+
+Produce a comprehensive report titled:
+
+```text id="v6u5j0"
+PHASE 4 — DATASET ANALYSIS & VIRTUAL SENSOR DATA READINESS REPORT
+```
+
+Include:
+
+## A. Dataset Folder Inventory
+
+Complete inventory of the local `Dataset/` folder.
+
+## B. Panasonic Dataset Analysis
+
+Detailed signal, target, profile and quality analysis.
+
+## C. Oxford Dataset Analysis
+
+Detailed aging/generalization analysis.
+
+## D. NASA Dataset Analysis
+
+Detailed external robustness analysis.
+
+## E. Source Verification
+
+Map local files to the official source datasets.
+
+## F. Signal Mapping
+
+Verify:
+
+```text
+Voltage → V
+Current → I
+Chamber_Temp_degC → Tamb
+Qacc → Current integral
+Battery_Temp_degC → Surface Temperature target
+```
+
+## G. Train / Validation / Test Strategy
+
+Validate the proposed Panasonic split.
+
+## H. Leakage Analysis
+
+Identify all potential leakage paths and prevention strategy.
+
+## I. Cross-Dataset Compatibility
+
+Panasonic vs Oxford vs NASA.
+
+## J. IEEE Benchmark Compatibility
+
+Determine how closely the proposed Panasonic setup can reproduce the reference methodology.
+
+## K. Data Quality Report
+
+Identify all data-quality issues.
+
+## L. Provenance Plan
+
+Define how source, version, hash and preprocessing should be tracked.
+
+## M. Dataset Roles
+
+Define the scientifically defensible role of each dataset.
+
+## N. Validation Strategy
+
+Evaluate the complete:
+
+```text
+Panasonic
+→ Oxford
+→ NASA
+```
+
+validation progression.
+
+## O. Open Data Questions
+
+Identify missing information that must be resolved before modeling.
+
+## P. Model-Readiness Assessment
+
+Clearly state whether the data is:
+
+```text
+READY FOR BASELINE
+READY FOR IEEE REPRODUCTION
+NOT READY
+PARTIALLY READY
+```
+
+and explain why.
+
+---
+
+# FINAL RULE
+
+This is still a **data-understanding and validation phase**.
+
+Do not:
+
+* Train the CNN-LSTM.
+* Train any ML model.
+* Tune hyperparameters.
+* Build the API.
+* Build the frontend.
+* Create database tables.
+* Modify raw datasets.
+* Merge datasets prematurely.
+* Claim cross-dataset generalization.
+* Claim that Panasonic performance transfers to Oxford or NASA.
+
+The correct progression is:
+
+```text
+Research Papers
+        +
+Project Handbook
+        +
+V1 Thermal Requirements
+        +
+Dataset Folder
+        +
+Official Dataset Sources
+        ↓
+Verified Dataset Understanding
+        ↓
+Data Quality Validation
+        ↓
+Leakage-Safe Split Design
+        ↓
+Cross-Dataset Compatibility
+        ↓
+IEEE Benchmark Reproduction Plan
+        ↓
+Model Implementation
+```
+
+The immediate objective is **not to build the model**.
+
+The immediate objective is to ensure that we know exactly:
+
+```text
+What data we have
+What each signal means
+What the target actually represents
+How the data should be split
+What Panasonic can prove
+What Oxford can prove
+What NASA can prove
+What the IEEE benchmark requires
+What data problems must be solved first
+```
+
+Only after this dataset analysis is complete and the data is considered sufficiently ready should we move to the next phase: **baseline implementation and faithful IEEE CNN-LSTM reproduction**.

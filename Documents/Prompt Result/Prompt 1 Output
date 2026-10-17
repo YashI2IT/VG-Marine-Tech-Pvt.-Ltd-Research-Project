@@ -1,0 +1,95 @@
+# TrustSense-BMS Project Understanding Report
+
+## A. Project Overview
+The **TrustSense-BMS** project is a 9-month coordinated AI/ML internship to develop a secure battery intelligence platform for VG Marines. The project aims to reconstruct unmeasured cell/module temperatures using physics-informed virtual sensors, optimize and reduce physical sensor counts, detect cyber manipulations or sensor faults, and establish a tamper-evident lifecycle record using blockchain and LLM/RAG technologies.
+
+## B. Problem Definition
+Battery Management Systems (BMS) are critical for safety and performance, relying on sensors for voltage, current, and temperature. However:
+1. Physical temperature sensors are sparse and cannot capture every cell's thermal state (e.g., hidden hotspots).
+2. Connected AI-enhanced vehicles face cybersecurity threats (e.g., CAN-bus spoofing, sensor manipulation) that can mimic or obscure physical faults.
+3. Multi-stakeholder battery ecosystems (OEMs, battery makers, recyclers) lack a trusted, immutable system to share battery lifecyle data, model versions, and incident histories without silently rewriting records.
+
+## C. Stakeholders & Users
+- **Interns (CS / AI-ML)**: The primary builders of the system, divided into three specialized work packages.
+- **Technical Mentors**: Oversee the project, review methodologies, and provide sign-off.
+- **VG Marines / Consortium (OEMs, Fleet Operators, Recyclers)**: The end-users of the dashboard and blockchain network, utilizing it for battery passports, lifecycle auditing, and trusted analytics.
+
+## D. Core Work Packages
+The project is divided into three integrated work packages, sharing a common data lake and dashboard:
+1. **Intern 1 (Virtual Sensing)**: Focuses on physics-informed thermal models (PINN, GNN, TCN) to estimate cell/module temperatures, calculate uncertainty, and determine optimal physical sensor placement (ablation/reduction).
+2. **Intern 2 (Cybersecurity)**: Focuses on Intrusion Detection Systems (IDS) for CAN/CAN-FD networks. Distinguishes between accidental sensor faults and deliberate cyber attacks using physical residuals, timing contexts, and payload analysis.
+3. **Intern 3 (Blockchain & RAG)**: Focuses on creating a Hyperledger Fabric provenance layer to store hashes of telemetry, models, and incidents. Also develops a domain-specific, advisory-only LLM/RAG assistant for engineering queries and automated report generation.
+
+## E. Functional Requirements
+- **Thermal Reconstruction**: Predict unmeasured temperatures and hotspots from sparse physical sensors, current, voltage, and SOC.
+- **Sensor Reduction**: Evaluate the minimal sensor set required to maintain thermal observability and fault isolation.
+- **Anomaly Detection**: Identify sensor faults (bias, drift, dropout) and CAN anomalies (fuzzing, flooding, spoofing).
+- **Fault vs. Attack Discrimination**: Use multi-modal context (e.g., thermal dynamics vs. CAN timing) to classify anomalies.
+- **Data Provenance**: Record battery registration, sensor configuration, model versions, telemetry hashes, and incident events on a permissioned ledger.
+- **RAG Assistant**: Provide a natural language interface backed by verified battery documents, generating citations and human-readable incident summaries.
+
+## F. Non-Functional Requirements
+- **Reproducibility**: Mandatory data splitting rules to prevent leakage, fixed random seeds, and tracked dataset/model hashes.
+- **Performance**: 
+  - Virtual temperature RMSE <= 1.0 °C.
+  - Hotspot recall >= 95%.
+  - CAN IDS F1 score >= 0.95.
+  - API/Model latency (p95) <= 100ms.
+- **Modularity**: Work packages must run independently but integrate via a canonical schema and shared API/dashboard.
+- **Explainability**: Complex AI models must be benchmarked against transparent baselines (e.g., Interpolation, RC models, Isolation Forests).
+
+## G. Data Requirements
+- **Sources**: Public battery datasets (NASA, CALCE, Oxford, MATR) and cyber datasets (HCRL, CICIoV2024, CICEVSE2024).
+- **Synthetic Data**: Use PyBaMM and thermal network simulations to generate full spatial ground truths and inject controlled sensor faults/attacks.
+- **Schema**: A canonical data schema must unify identity, time, electrical, thermal, position, quality, fault/attack, model output, and provenance fields.
+- **Splitting Strategy**: Strict separation of training, validation, and testing sets by cell, cycle, or geometry to prevent data leakage (time-series correlation).
+
+## H. AI/ML Requirements
+- **Model Development Ladder**: Start with simple baselines (tabular/statistical) and progress to complex models (PINN, GNN, Autoencoders) only if performance improves.
+- **Physics-Informed Learning**: Use hybrid residual models where a simple physical ODE predicts the main trend, and an ML model learns the residual error.
+- **Uncertainty Quantification**: Models must output prediction intervals (confidence bounds) and detect Out-of-Distribution (OOD) inputs.
+
+## I. Cybersecurity Requirements (System & ML)
+- **Threat Model**: Must account for CAN spoofing, sensor bias/drift, dataset poisoning, and model evasion.
+- **Adversarial ML**: Implement dataset hashing, immutable raw zones, and OOD detection.
+- **Safe Fallback**: If a model is uncertain or attacked, the system must flag it and fall back to conservative hardware measurements or safe states.
+
+## J. Blockchain / Provenance Requirements
+- **Network**: Hyperledger Fabric with roles for OEM, battery maker, fleet operator, and recycler.
+- **Off-Chain vs On-Chain**: High-frequency telemetry and large model files stay off-chain; cryptographic hashes, model versions, and critical events go on-chain.
+- **Smart Contracts**: Implement functions for `RegisterBattery`, `RegisterModelVersion`, `AddTelemetryHash`, `RecordSensorFault`, and `RecordCyberIncident`.
+
+## K. LLM/RAG Requirements
+- **Advisory Only**: The LLM must not execute control commands or alter safety limits.
+- **Guardrails**: Role-based access control, prompt-injection filtering, and mandatory citations from approved sources.
+- **Workflow**: Generate draft incident reports requiring human approval before finalized submission to the blockchain.
+
+## L. System Workflows
+1. **Data Ingestion**: Standardize public/synthetic data into the canonical schema.
+2. **Virtual Sensing & IDS**: Live/replayed data passes through the physics model and CAN IDS simultaneously.
+3. **Safety Supervisor**: Evaluates physical plausibility, model uncertainty, and anomaly scores to decide if data is trustworthy.
+4. **Provenance & Reporting**: Hashes of the data batch and any detected incidents are logged to the blockchain; the RAG system formulates explanations.
+
+## M. Constraints & Safety Boundaries
+> [!WARNING]
+> - **Not a Production Safety System**: This is a research demonstrator. It does not replace ISO 26262 functional safety.
+> - **No Sensor Removal**: Safety-critical sensors (cell voltage, pack current, contactors) cannot be virtually replaced. Virtual temperature sensors remain advisory/analytically redundant.
+> - **No Live Vehicle Injection**: Cyberattack testing is restricted to offline, virtual, or isolated bench environments. No live attacks on road vehicles.
+
+## N. Acceptance Criteria
+- **Validation Pyramid**: Progression from unit tests -> offline replay -> scenario testing -> integrated bench -> final end-to-end demonstration.
+- **Metrics Check**: Meeting the established numerical targets (RMSE, F1, Latency, Recall) on an untouched, sealed final test set.
+- **Mentor Sign-Off**: Verification of documentation, reproducible code, immutable datasets, transparent baselines, and safety compliance.
+
+## O. Risks, Gaps & Open Questions
+- **Data Harmonization**: Public datasets vary wildly in protocols, sampling rates, and chemistries; unifying them into a canonical schema is a significant risk.
+- **Simulation Accuracy**: PyBaMM synthetic data may not perfectly replicate real-world thermal/CAN noise, potentially overstating model performance.
+- **Compute Constraints**: Running GNNs, Autoencoders, and an LLM concurrently may challenge the 100ms latency target if edge deployment is simulated.
+- **Integration Friction**: Three separate AI/Blockchain pipelines must converge smoothly in Month 6-9; defining clear API contracts early is crucial.
+
+## P. Preliminary System Understanding
+Conceptually, the system acts as a **Battery Intelligence Data Lake & API**. 
+1. The base layer parses diverse time-series data. 
+2. The intelligence layer runs two parallel pipelines: a digital twin for thermal physics (Intern 1) and a security monitor for network/sensor integrity (Intern 2). 
+3. The governance layer (Intern 3) anchors the outputs of the intelligence layer to an immutable ledger and provides a natural-language query interface for human operators. 
+4. The final output is an integrated web dashboard demonstrating real-time battery states backed by cryptographically verifiable historical evidence.

@@ -1,0 +1,1450 @@
+# PHASE 6 — COMPLETE “ARCHITECTURE DOCUMENTATION BY COMPANY” ANALYSIS
+
+We have already completed the previous project-understanding stages:
+
+```text
+PHASE 0
+ECUlytics_TrustSense_Battery_Analytics_Internship_Handbook.pdf
+        ↓
+PHASE 1
+Documentation By Yash for College Showcase
+        ↓
+PHASE 2
+Research Paper By Company
+        ↓
+PHASE 3
+V1 Thermal Management Platform
+        ↓
+PHASE 4
+Dataset Analysis
+        ↓
+PHASE 5
+Full Thermal Intelligence Platform
+        ↓
+PHASE 6
+Architecture Documentation By Company
+```
+
+The current task is to **analyze the entire `Architecture Documentation By Company/` folder in depth**.
+
+This folder contains detailed company-provided architecture documents, workflows, engineering guidelines, testing procedures, validation methodology, acceptance criteria, and supporting architecture diagrams.
+
+---
+
+# CRITICAL OBJECTIVE
+
+Do **not** start development.
+
+Do **not** write code.
+
+Do **not** create the final frontend/backend folder structure.
+
+Do **not** implement any APIs, models, databases, blockchain, cybersecurity, RAG, or UI.
+
+The sole purpose of this phase is to understand the company's intended architecture and engineering expectations as completely as possible.
+
+The architecture documentation should be treated as a **detailed engineering reference and requirement source**, while the previously analyzed handbook remains the primary project-definition reference.
+
+Do not silently resolve contradictions between documents.
+
+Do not invent missing information.
+
+Clearly identify:
+
+```text
+Confirmed
+Documented Recommendation
+Inferred
+Assumption
+Conflict
+Missing
+Needs Clarification
+Out of Scope
+```
+
+---
+
+# 1. ANALYZE THE ENTIRE FOLDER
+
+Thoroughly inspect:
+
+```text
+Architecture Documentation By Company/
+```
+
+Analyze **every file present in the folder**, including:
+
+* Architecture diagrams
+* PNG/JPG/SVG images
+* PDF guides
+* Workflow documents
+* Acceptance criteria documents
+* Testing guides
+* Development guides
+* API specifications
+* Data contracts
+* Security documentation
+* Integration documents
+* UI specifications
+* RAG documentation
+* Blockchain documentation
+* Cybersecurity documentation
+* Cloud/infrastructure documentation
+* Any other company-provided architecture material
+
+Do not analyze only the files already known.
+
+If there are additional files in the folder, analyze them as well.
+
+Do not rely only on filenames.
+
+Read the actual content and inspect embedded diagrams, tables, workflows, architecture figures, and acceptance criteria.
+
+---
+
+# 2. CURRENTLY PROVIDED ARCHITECTURE DOCUMENTATION
+
+At minimum, carefully analyze the materials already provided, including:
+
+```text
+Cyber_Trust_Layer_Guide.pdf
+
+Blockchain_Compliance_Layer_Development_Testing_Acceptance_Guide.pdf
+
+Step2_Cloud_Ingestion_Device_Management_Guide.pdf
+
+Step7_RAG_Knowledge_Intelligence_Guide.pdf
+
+Step8_Website_Full_Stack_UI_Guide.pdf
+
+Full Temp Intelligence Platform View.png
+```
+
+Also analyze any additional files found in:
+
+```text
+Architecture Documentation By Company/
+```
+
+Do not assume these are the complete contents of the folder.
+
+---
+
+# 3. CREATE A COMPLETE ARCHITECTURE DOCUMENT INVENTORY
+
+For every file, create a structured understanding:
+
+```text
+File
+Document Purpose
+Architecture Step
+Scope
+Primary Responsibilities
+Inputs
+Outputs
+Dependencies
+Interfaces
+Technologies Mentioned
+Security Requirements
+Testing Requirements
+Acceptance Criteria
+Deliverables
+Risks
+Relationship to Other Documents
+```
+
+Identify which architecture layer the document belongs to.
+
+---
+
+# 4. RECONSTRUCT THE COMPANY'S COMPLETE PLATFORM ARCHITECTURE
+
+Using all architecture documents and diagrams, reconstruct the complete platform concept.
+
+Determine:
+
+```text
+Vehicle / Battery
+      ↓
+Cloud Ingestion
+      ↓
+Security / Trust
+      ↓
+Battery Data / Feature Processing
+      ↓
+Virtual Temperature / Thermal State
+      ↓
+Thermal Intelligence
+      ↓
+Decision / Recommendation
+      ↓
+RAG / Knowledge Intelligence
+      ↓
+Blockchain / Provenance / Compliance
+      ↓
+Website / Customer Interface
+```
+
+Do not assume this exact sequence is correct.
+
+Use the actual company architecture documents to determine the real dependency flow.
+
+Create a final **technology-independent architecture map** first.
+
+Then separately document the technologies proposed by the company.
+
+---
+
+# 5. RECONSTRUCT ARCHITECTURE STEP BY STEP
+
+For every architecture step found in the documentation, determine:
+
+```text
+Purpose
+Boundary
+Inputs
+Processing
+Outputs
+Owner
+Downstream Consumer
+Upstream Dependency
+Failure Behavior
+Security Boundary
+Data Boundary
+Testing Boundary
+```
+
+For every step, answer:
+
+> What problem does this layer solve, and why does it exist separately from the other layers?
+
+---
+
+# 6. STEP 1 — VIRTUAL TEMPERATURE SENSOR
+
+Analyze all documentation related to the thermal/virtual sensing layer.
+
+Determine:
+
+* Input signals
+* Sparse temperature sensors
+* Voltage
+* Current
+* Ambient temperature
+* Coolant/BTMS information
+* SOC
+* Operating context
+* Historical sequences
+* Feature engineering
+* CNN-LSTM
+* GNN
+* Hybrid physics/ML
+* Confidence
+* Validity
+* Sensor residuals
+
+Determine exactly what this layer produces and what downstream systems consume it.
+
+Connect this to the research papers already analyzed.
+
+Do not finalize the ML architecture yet.
+
+---
+
+# 7. STEP 2 — FULL THERMAL STATE ESTIMATION
+
+Analyze the company's intended full thermal-state layer.
+
+Determine:
+
+* Cell temperature reconstruction
+* Module temperature reconstruction
+* Spatial mapping
+* Thermal adjacency
+* Graph propagation
+* Physics constraints
+* Thermal history
+* Temperature maps
+* Tmax
+* Tmin
+* Tavg
+* ΔT
+* dT/dt
+* Spatial gradient
+* Hotspot location
+
+Determine the exact distinction between:
+
+```text
+Virtual Sensor
+        vs
+Full Thermal State Estimation
+```
+
+This distinction must be preserved in the future architecture.
+
+---
+
+# 8. STEP 3 — THERMAL INTELLIGENCE
+
+Analyze the complete thermal-intelligence layer, including:
+
+```text
+Hotspot Engine
+Thermal Risk Engine
+Cooling Health Engine
+Sensor Health Engine
+Thermal Aging Engine
+Temperature Forecast Engine
+Diagnostics Layer
+```
+
+For each engine determine:
+
+```text
+Purpose
+Inputs
+Features
+Analysis
+Output
+Confidence
+Required Evidence
+Possible Failure
+Required Ground Truth
+Validation Metrics
+Customer Question Addressed
+```
+
+Map each engine to the eight V1 customer questions.
+
+---
+
+# 9. STEP 4 — DECISION ENGINE
+
+Analyze the company's decision-support architecture.
+
+Determine:
+
+### Inputs
+
+* Diagnostics
+* Rules
+* Thresholds
+* OEM calibrations
+* Fleet/service priorities
+
+### Processing
+
+* Severity classification
+* Risk prioritization
+* Alert correlation
+* Decision logic
+* Recommendation generation
+
+### Outputs
+
+* Alert level
+* Maintenance recommendation
+* Charging recommendation
+* Cooling recommendation
+* Work-order trigger
+* Dashboard/API/report output
+
+Clearly distinguish:
+
+```text
+Analytics
+↓
+Risk Assessment
+↓
+Recommendation
+↓
+Human Decision
+```
+
+from:
+
+```text
+Analytics
+↓
+Automatic Vehicle/BMS Control
+```
+
+Preserve the safety boundary defined by the handbook.
+
+---
+
+# 10. STEP 2 — CLOUD INGESTION & DEVICE MANAGEMENT
+
+Analyze:
+
+```text
+Step2_Cloud_Ingestion_Device_Management_Guide.pdf
+```
+
+in depth.
+
+Determine the complete ingestion architecture:
+
+```text
+TCU / Gateway
+      ↓
+API Gateway / Load Balancer
+      ↓
+MQTT / HTTPS
+      ↓
+Device Registry
+      ↓
+Authentication / Authorization
+      ↓
+Schema Validation
+      ↓
+Time Synchronization
+      ↓
+Data Quality
+      ↓
+Message Queue / Event Bus
+      ↓
+Downstream Services
+```
+
+Extract:
+
+* Device lifecycle
+* Tenant model
+* Identity model
+* Authentication
+* Authorization
+* Topic/API rules
+* Data contracts
+* Timestamp policy
+* Sequence numbers
+* Idempotency
+* Replay handling
+* Backpressure
+* Reliability
+* Observability
+* Failure handling
+* Acceptance criteria
+
+Clearly identify what belongs to ingestion and what belongs to cybersecurity/trust.
+
+The company documentation explicitly separates transport/identity/quality responsibilities from Step 3 cyber/physics trust classification; preserve this architectural boundary.
+
+---
+
+# 11. CYBERSECURITY & TRUST LAYER
+
+Analyze:
+
+```text
+Cyber_Trust_Layer_Guide.pdf
+```
+
+in depth, even though cybersecurity implementation itself is not the current development scope.
+
+The objective is architectural understanding.
+
+Analyze:
+
+```text
+Identity + Integrity
+        ↓
+Schema + Freshness
+        ↓
+AI Cyber IDS
+        ↓
+Physics Plausibility
+        ↓
+Trust Fusion
+        ↓
+Response + Evidence
+```
+
+Determine:
+
+* Trust boundary
+* Identity
+* Device authentication
+* Tenant authorization
+* Sequence validation
+* Replay detection
+* IDS
+* Physics checks
+* Sensor spoofing
+* Anomaly classification
+* SAFE / SUSPICIOUS / BLOCK
+* Quarantine
+* SIEM
+* Audit
+* Evidence
+* Hash anchoring
+
+Understand how trusted telemetry reaches thermal analytics.
+
+Do not implement cybersecurity.
+
+---
+
+# 12. BLOCKCHAIN / BATTERY PASSPORT / COMPLIANCE LAYER
+
+Analyze:
+
+```text
+Blockchain_Compliance_Layer_Development_Testing_Acceptance_Guide.pdf
+```
+
+completely.
+
+Understand:
+
+```text
+Off-chain system of record
+        ↓
+Canonicalization
+        ↓
+SHA-256
+        ↓
+Merkle tree
+        ↓
+Hyperledger Fabric
+        ↓
+Passport ledger
+        ↓
+Verification
+```
+
+Determine:
+
+* What remains off-chain
+* What is anchored on-chain
+* Event model
+* Battery passport
+* Provenance
+* Identity
+* Smart contracts
+* Lifecycle events
+* Verification
+* Access control
+* Audit requirements
+* Acceptance criteria
+* Failure/reconciliation behavior
+
+Pay particular attention to the rule:
+
+> High-volume telemetry must remain off-chain; the ledger acts as a system of proof and shared state.
+
+Do not implement blockchain during this phase.
+
+---
+
+# 13. RAG & KNOWLEDGE INTELLIGENCE LAYER
+
+Analyze:
+
+```text
+Step7_RAG_Knowledge_Intelligence_Guide.pdf
+```
+
+completely.
+
+Understand:
+
+```text
+Approved knowledge
+        ↓
+Parsing
+        ↓
+Chunking
+        ↓
+Metadata
+        ↓
+Embeddings
+        ↓
+Hybrid Retrieval
+        ↓
+Reranking
+        ↓
+Prompt Assembly
+        ↓
+Grounded Generation
+        ↓
+Citation / Refusal
+```
+
+Analyze:
+
+* Knowledge sources
+* Governance
+* Versioning
+* Tenant isolation
+* ACL filtering
+* Embeddings
+* Hybrid retrieval
+* Reranking
+* Prompt assembly
+* Citations
+* Refusal
+* Evaluation
+* Prompt-injection protection
+* RAG monitoring
+
+Understand how the RAG layer consumes thermal diagnostics/evidence.
+
+Do not implement RAG yet.
+
+---
+
+# 14. WEBSITE / FULL-STACK UI LAYER
+
+Analyze:
+
+```text
+Step8_Website_Full_Stack_UI_Guide.pdf
+```
+
+in depth.
+
+Determine:
+
+### Users
+
+* OEM engineering
+* Fleet operator
+* Battery manufacturer
+* Service engineer
+* Warranty analyst
+* Tenant administrator
+
+### Main views
+
+* Fleet overview
+* Vehicle detail
+* Pack/module/cell heatmap
+* Thermal intelligence
+* Cybersecurity alerts
+* Battery passport
+* Ask the Battery
+* Reports
+* Administration
+
+Determine:
+
+* Frontend responsibilities
+* Backend/BFF responsibilities
+* REST APIs
+* WebSocket/SSE
+* Authentication
+* RBAC
+* Visualization
+* Reporting
+* Notifications
+* Observability
+* Responsive behavior
+* Acceptance criteria
+
+Do not build the frontend yet.
+
+The purpose is to understand exactly what the frontend will eventually need from the backend and thermal services.
+
+---
+
+# 15. TRACE THE DATA THROUGH THE ENTIRE PLATFORM
+
+Create an end-to-end data-flow analysis:
+
+```text
+Telemetry
+    ↓
+Ingestion
+    ↓
+Validation
+    ↓
+Trust
+    ↓
+Trusted Data
+    ↓
+Feature Engineering
+    ↓
+Virtual Temperature
+    ↓
+Full Thermal State
+    ↓
+Thermal Intelligence
+    ↓
+Diagnostics
+    ↓
+Decision Support
+    ↓
+Persistence / Provenance
+    ↓
+RAG / Reports
+    ↓
+Customer Dashboard
+```
+
+Identify:
+
+* Which service produces each data object.
+* Which service consumes it.
+* Which data is real-time.
+* Which data is historical.
+* Which data is mutable.
+* Which data must be immutable.
+* Which data is persisted.
+* Which data is cached.
+* Which data is sent to the blockchain.
+* Which data is sent to RAG.
+* Which data reaches the frontend.
+
+---
+
+# 16. BUILD THE CROSS-LAYER DATA CONTRACT
+
+Determine the canonical data objects shared between layers.
+
+Pay attention to:
+
+```text
+tenant_id
+vehicle_id
+battery_id
+module_id
+cell_id
+sensor_id
+timestamp
+sequence
+schema_version
+signals
+temperature
+cooling state
+quality
+trust status
+model version
+confidence
+anomaly score
+diagnostic result
+event ID
+provenance information
+```
+
+Identify:
+
+```text
+Required Field
+Owner
+Producer
+Consumer
+Validation
+Versioning
+```
+
+Do not create the final database schema yet.
+
+This is conceptual data-contract analysis only.
+
+---
+
+# 17. IDENTIFY INTER-SERVICE CONTRACTS
+
+For every architecture boundary, determine:
+
+```text
+Producer
+      ↓
+Interface
+      ↓
+Consumer
+```
+
+For example:
+
+```text
+Cloud Ingestion
+      ↓
+Normalized Event Contract
+      ↓
+Trust Layer
+```
+
+```text
+Trust Layer
+      ↓
+Trusted Telemetry Contract
+      ↓
+Thermal Analytics
+```
+
+```text
+Thermal Intelligence
+      ↓
+Diagnostic Event
+      ↓
+Decision Engine
+```
+
+```text
+Thermal / Diagnostic Services
+      ↓
+Evidence / Context
+      ↓
+RAG
+```
+
+```text
+Analytics / Events
+      ↓
+Provenance Event
+      ↓
+Blockchain
+```
+
+```text
+Backend APIs
+      ↓
+JSON/API Contracts
+      ↓
+Frontend
+```
+
+Identify missing or ambiguous contracts.
+
+---
+
+# 18. ACCEPTANCE CRITERIA ANALYSIS
+
+This is one of the most important requirements of this phase.
+
+Extract **all acceptance criteria** from the architecture documentation.
+
+Do not merely list numerical targets.
+
+For each acceptance criterion identify:
+
+```text
+Requirement
+Target
+Measurement
+Test Method
+Required Data
+Pass Condition
+Evidence
+Responsible Layer
+Dependency
+```
+
+Classify criteria into:
+
+```text
+Functional
+Performance
+Accuracy
+Latency
+Security
+Reliability
+Data Quality
+AI/ML
+Thermal
+Blockchain
+RAG
+Frontend
+Integration
+Reproducibility
+Operational
+```
+
+Determine which acceptance criteria are:
+
+```text
+Mandatory
+Baseline Project Target
+Needs Calibration
+Depends on OEM Input
+Not Yet Defined
+```
+
+Do not modify the company's target values during this phase.
+
+---
+
+# 19. TESTING & VALIDATION STRATEGY
+
+Reconstruct the company's intended testing pyramid.
+
+Determine whether the documentation expects:
+
+```text
+Unit Tests
+      ↓
+Integration Tests
+      ↓
+Replay Tests
+      ↓
+Stress Tests
+      ↓
+Fault Injection
+      ↓
+Security Tests
+      ↓
+Cross-Dataset Tests
+      ↓
+End-to-End Tests
+      ↓
+Acceptance Tests
+```
+
+Map every major component to its testing strategy.
+
+Identify:
+
+* Test data
+* Test scenarios
+* Expected result
+* Pass/fail criteria
+* Performance metrics
+* Reproducibility evidence
+* Regression requirements
+
+---
+
+# 20. DEVELOPMENT LIFECYCLE
+
+Extract the company's intended development lifecycle.
+
+Determine:
+
+```text
+Requirements
+↓
+Design
+↓
+Implementation
+↓
+Verification
+↓
+Validation
+↓
+Acceptance
+↓
+Deployment
+↓
+Monitoring
+↓
+Versioned Improvement
+```
+
+Identify the expected:
+
+* milestones
+* release gates
+* evidence
+* review points
+* sign-off criteria
+* ownership boundaries
+
+Do not start implementing the lifecycle yet.
+
+---
+
+# 21. SECURITY AND SAFETY BOUNDARIES
+
+Across all architecture documentation, consolidate:
+
+### What the system is allowed to do
+
+and:
+
+### What the system must not do.
+
+Pay particular attention to:
+
+* No autonomous BMS control
+* No unsafe vehicle control from cloud analytics
+* Advisory-only virtual sensing until validated
+* Safe attack testing
+* Tenant isolation
+* Authentication
+* Authorization
+* Data privacy
+* Auditability
+* RAG refusal
+* Blockchain data minimization
+* Secure model deployment
+
+Create one consolidated safety/security boundary.
+
+---
+
+# 22. IDENTIFY ARCHITECTURAL DEPENDENCIES
+
+Create a dependency graph.
+
+For example:
+
+```text
+Device Management
+       ↓
+Trust Layer
+       ↓
+Thermal Analytics
+       ↓
+Decision Support
+       ↓
+Frontend
+```
+
+with supporting relationships:
+
+```text
+Thermal Analytics
+      ↓
+RAG
+      ↓
+Knowledge Explanation
+```
+
+and:
+
+```text
+Events / Evidence
+      ↓
+Blockchain / Provenance
+```
+
+Determine the actual dependencies from the documents.
+
+Identify circular dependencies or architectural risks.
+
+---
+
+# 23. IDENTIFY WHAT CAN BE DEVELOPED INDEPENDENTLY
+
+Classify components as:
+
+```text
+Independent
+Loosely Coupled
+Strongly Dependent
+Integration-Dependent
+Blocked Until Another Layer Exists
+```
+
+This will later help us determine the development order.
+
+Do not decide the final implementation sequence until this analysis is complete.
+
+---
+
+# 24. IDENTIFY ARCHITECTURAL RISKS
+
+Look specifically for:
+
+* Overengineering
+* Too many microservices
+* Unnecessary technology
+* Excessive synchronous dependencies
+* Real-time latency bottlenecks
+* Large payloads
+* Data duplication
+* Inconsistent schemas
+* Version-management problems
+* Model-service coupling
+* Trust-layer bypass possibilities
+* RAG data leakage
+* Blockchain bottlenecks
+* Frontend/backend coupling
+* Tenant-isolation risks
+* Incomplete failure handling
+* Missing observability
+* Missing acceptance criteria
+* Missing ownership boundaries
+
+For every risk, provide:
+
+```text
+Risk
+Evidence
+Potential Impact
+Affected Layer
+Severity
+Needs Clarification?
+```
+
+---
+
+# 25. IDENTIFY CONTRADICTIONS BETWEEN DOCUMENTS
+
+Cross-check all architecture documents against one another.
+
+Look for conflicts involving:
+
+* Architecture steps
+* Numbering
+* Data flows
+* Responsibilities
+* APIs
+* Technologies
+* Storage
+* Authentication
+* User roles
+* Model ownership
+* Real-time communication
+* Blockchain boundaries
+* RAG boundaries
+* Frontend responsibilities
+* Acceptance criteria
+
+Do not silently reconcile conflicts.
+
+Report them explicitly.
+
+---
+
+# 26. COMPARE ARCHITECTURE WITH HANDBOOK
+
+Create a traceability matrix:
+
+```text
+Handbook Requirement
+        ↓
+Architecture Document
+        ↓
+Architecture Component
+        ↓
+Implementation Implication
+        ↓
+Acceptance Evidence
+```
+
+Classify each requirement:
+
+```text
+Covered
+Partially Covered
+Expanded by Architecture
+Not Covered
+Contradictory
+Unclear
+```
+
+---
+
+# 27. COMPARE ARCHITECTURE WITH V1 THERMAL PLATFORM
+
+Map:
+
+```text
+V1 Customer Question
+        ↓
+Architecture Layer
+        ↓
+Thermal Engine
+        ↓
+Required Data
+        ↓
+Required API
+        ↓
+Frontend View
+        ↓
+Acceptance Evidence
+```
+
+Do this for all eight customer questions.
+
+---
+
+# 28. COMPARE ARCHITECTURE WITH RESEARCH
+
+For thermal-management components, compare the architecture against the research papers already analyzed.
+
+Determine:
+
+```text
+Research Method
+        ↓
+Architecture Component
+        ↓
+Intended Use
+        ↓
+Adaptation Required
+        ↓
+Validation Required
+```
+
+Do not assume that a cited research paper automatically validates the architecture.
+
+---
+
+# 29. DETERMINE WHAT IS STILL MISSING
+
+Identify all unresolved items needed before implementation.
+
+Organize them into:
+
+```text
+Product
+Requirements
+Data
+Thermal
+AI/ML
+Backend
+Frontend
+Infrastructure
+Security
+RAG
+Blockchain
+Integration
+Testing
+Deployment
+Operations
+```
+
+Prioritize:
+
+```text
+Critical
+High
+Medium
+Low
+```
+
+---
+
+# 30. CREATE THE MASTER ARCHITECTURE TRACEABILITY MATRIX
+
+Create one consolidated matrix:
+
+```text
+Requirement
+→ Architecture Layer
+→ Component
+→ Input
+→ Processing
+→ Output
+→ Interface
+→ Data Store
+→ Test
+→ Acceptance Criteria
+→ Evidence
+→ Owner
+→ Status
+```
+
+This should become the foundation for our future implementation planning.
+
+---
+
+# 31. IMPORTANT — DO NOT IMPLEMENT ANYTHING
+
+During this phase:
+
+```text
+NO CODE
+NO REPOSITORY RESTRUCTURING
+NO DATABASE CREATION
+NO API IMPLEMENTATION
+NO MODEL TRAINING
+NO FRONTEND DEVELOPMENT
+NO BACKEND DEVELOPMENT
+NO BLOCKCHAIN DEPLOYMENT
+NO RAG IMPLEMENTATION
+NO CYBERSECURITY IMPLEMENTATION
+```
+
+We are still establishing the complete architecture understanding.
+
+---
+
+# 32. REQUIRED FINAL OUTPUT
+
+Produce a comprehensive report titled:
+
+```text
+PHASE 6 — COMPLETE COMPANY ARCHITECTURE ANALYSIS
+```
+
+The report must contain:
+
+## A. Complete Architecture Documentation Inventory
+
+Every file and its purpose.
+
+## B. Complete Platform Architecture
+
+The overall system reconstructed from all documents.
+
+## C. Architecture Layer-by-Layer Analysis
+
+Every architecture step and its boundaries.
+
+## D. Thermal Platform Analysis
+
+Step 1 → Step 2 → Step 3 → Step 4.
+
+## E. Cloud Ingestion Analysis
+
+Device, tenant, ingestion, validation, queue and reliability.
+
+## F. Cybersecurity / Trust Analysis
+
+Trust boundary and SAFE/SUSPICIOUS/BLOCK flow.
+
+## G. Blockchain / Compliance Analysis
+
+Off-chain/on-chain architecture and provenance.
+
+## H. RAG Analysis
+
+Knowledge, retrieval, grounding, citation and safety.
+
+## I. Website / Full-Stack Analysis
+
+Users, pages, APIs, realtime updates and frontend responsibilities.
+
+## J. End-to-End Data Flow
+
+Telemetry → customer interface.
+
+## K. Canonical Data Contracts
+
+Important fields, ownership and consumers.
+
+## L. Inter-Service Interfaces
+
+Producer → contract → consumer.
+
+## M. Acceptance Criteria
+
+Complete acceptance matrix.
+
+## N. Testing & Validation Strategy
+
+Unit → integration → replay → stress → acceptance.
+
+## O. Development Lifecycle
+
+Milestones and release gates.
+
+## P. Security & Safety Boundaries
+
+Consolidated boundaries.
+
+## Q. Architecture Dependencies
+
+Dependency graph.
+
+## R. Architectural Risks
+
+Risk register.
+
+## S. Contradictions / Inconsistencies
+
+Cross-document conflicts.
+
+## T. Handbook Traceability
+
+Handbook → architecture mapping.
+
+## U. V1 Thermal Traceability
+
+Customer question → architecture → output.
+
+## V. Research Traceability
+
+Research → architecture → validation.
+
+## W. Missing Information
+
+All unresolved requirements.
+
+## X. Master Architecture Traceability Matrix
+
+Requirement → component → interface → test → acceptance evidence.
+
+## Y. Final System Understanding
+
+Provide one clear, consolidated explanation of what the company is actually asking us to build.
+
+---
+
+# FINAL DECISION RULE
+
+Do not make architectural decisions merely because a document mentions a technology.
+
+The analysis should distinguish:
+
+```text
+Company Requirement
+        vs
+Company Recommended Technology
+        vs
+Research Recommendation
+        vs
+Implementation Detail
+        vs
+Open Decision
+```
+
+For example:
+
+```text
+"Need real-time telemetry"
+        ≠
+"Must use technology X"
+```
+
+unless the company documentation explicitly requires that technology.
+
+Similarly:
+
+```text
+"Need virtual temperature estimation"
+        ≠
+"Final model must be CNN-LSTM"
+```
+
+unless that is formally established as a project requirement.
+
+The purpose is to understand the **engineering objective first**, then determine implementation decisions later.
+
+---
+
+# CURRENT PROJECT STATUS
+
+After this phase, the project should have:
+
+```text
+Handbook Understanding
+        +
+Existing Documentation Understanding
+        +
+Research Understanding
+        +
+V1 Product Understanding
+        +
+Dataset Understanding
+        +
+Company Architecture Understanding
+        ↓
+COMPLETE PROBLEM + SYSTEM UNDERSTANDING
+```
+
+Only after this is complete should we move toward:
+
+```text
+Validated Requirements
+        ↓
+Architecture Decisions
+        ↓
+Frontend / Backend Boundary
+        ↓
+Professional Repository Structure
+        ↓
+Detailed Implementation Plan
+        ↓
+Step-by-Step Development
+```
+
+**Do not skip directly to implementation.**
+
+The goal of Phase 6 is to understand the company's architecture **deeply enough that every future module, API, model, UI screen, database decision, test, and acceptance criterion can be traced back to an actual requirement or documented engineering decision.**

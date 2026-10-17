@@ -1,0 +1,889 @@
+# PHASE 3 — V1 PLATFORM IDEA ANALYSIS: THERMAL MANAGEMENT ONLY
+
+We have completed the earlier project-understanding stages:
+
+```text id="x0n5ay"
+PHASE 0
+ECUlytics_TrustSense_Battery_Analytics_Internship_Handbook.pdf
+        ↓
+PHASE 1
+Documentation By Yash for College Showcase
+        ↓
+PHASE 2
+Research Paper By Company
+        ↓
+PHASE 3
+V1 Platform Idea — Thermal Management Scope
+```
+
+I am now sharing the company's **V1 platform idea / architecture documentation** for further understanding.
+
+The relevant architecture reference is:
+
+```text id="yejvpu"
+Architecture Documentation By Company/
+Batt_Temp_Intelligence_Platform_EcuLytics_v_1.png
+```
+
+I am also providing the V1 customer-facing questions that the platform is expected to help answer.
+
+---
+
+# CRITICAL SCOPE DEFINITION
+
+### Our scope for this task is ONLY:
+
+```text
+THERMAL MANAGEMENT
+```
+
+Do not analyze, design, or include the **Digital Twin** portion of the architecture.
+
+Ignore Digital Twin-related functionality even if it appears in the architecture image or supporting material.
+
+However, analyze the remaining thermal-management-related portions of the V1 concept carefully and determine what the platform is expected to accomplish.
+
+The objective is to understand the **customer problem and required thermal-management intelligence**, not to start implementation.
+
+---
+
+# 1. ANALYZE THE V1 ARCHITECTURE IMAGE COMPLETELY
+
+Inspect:
+
+```text id="bfl0am"
+Batt_Temp_Intelligence_Platform_EcuLytics_v_1.png
+```
+
+carefully.
+
+Do not rely only on the visible title or high-level architecture.
+
+Analyze all relevant:
+
+* Inputs
+* Data sources
+* Sensors
+* Battery information
+* Vehicle information
+* Thermal information
+* Data-processing stages
+* Analytics
+* AI/ML components
+* Prediction/estimation components
+* Anomaly detection
+* Sensor health
+* Cooling analysis
+* Aging analysis
+* Risk analysis
+* Alerts
+* Recommendations
+* Dashboard components
+* APIs or services
+* Data flow
+* Outputs
+* Integration boundaries
+
+Ignore Digital Twin components entirely.
+
+For every relevant component, determine:
+
+```text
+Component
+Purpose
+Input
+Output
+Relationship to Thermal Management
+Potential User Value
+```
+
+If something is unclear from the diagram, mark it as:
+
+```text
+Unknown / Needs Clarification
+```
+
+Do not invent its meaning.
+
+---
+
+# 2. UNDERSTAND THE CUSTOMER QUESTIONS
+
+The V1 platform is expected to help customers answer these questions:
+
+### 1. Which cells are showing thermal anomalies?
+
+Determine what the system would need to:
+
+* identify a thermal anomaly
+* locate the affected cell/module
+* determine severity
+* provide evidence
+* distinguish normal thermal variation from an actual anomaly
+* indicate confidence
+* show historical context
+
+---
+
+### 2. Which vehicle is likely to overheat?
+
+Determine what information is required to make a vehicle-level overheating assessment.
+
+Consider:
+
+* Current thermal state
+* Temperature trends
+* Maximum temperature
+* Rate of temperature rise
+* Battery operating conditions
+* Cooling performance
+* Historical thermal behavior
+* Battery health/aging effects
+* Thermal exposure
+* Current operating conditions
+
+Do not assume the final prediction methodology.
+
+Determine what the problem actually requires.
+
+---
+
+### 3. Is the cooling system behaving correctly?
+
+Determine what "correct cooling behavior" means from a system perspective.
+
+Identify the information that may be required, such as:
+
+* coolant temperatures
+* cooling commands
+* flow
+* inlet/outlet behavior
+* thermal response
+* expected versus observed temperature reduction
+* ambient conditions
+* battery load
+* thermal lag
+
+Determine how the platform could conceptually identify:
+
+```text
+Normal Cooling
+        vs
+Degraded Cooling
+        vs
+Cooling Fault
+        vs
+Uncertain
+```
+
+Do not implement this yet.
+
+---
+
+### 4. Is a temperature sensor faulty?
+
+Analyze the requirement for:
+
+* sensor bias
+* drift
+* stuck-at values
+* dropout
+* noise
+* time shift
+* inconsistent neighboring temperatures
+* model residuals
+* disagreement between physical and virtual measurements
+
+Determine what evidence is required before declaring a sensor faulty.
+
+Also distinguish:
+
+```text
+Sensor Fault
+vs
+Real Thermal Event
+vs
+Cooling Problem
+vs
+Data/Communication Problem
+```
+
+---
+
+### 5. Which batteries are aging faster because of thermal exposure?
+
+Understand this requirement carefully.
+
+Determine what "thermal exposure" could mean, such as:
+
+* sustained high temperature
+* repeated thermal peaks
+* high temperature duration
+* thermal cycling
+* temperature gradients
+* hotspot exposure
+* cooling degradation
+* operating-condition interaction
+
+Determine what the system would need to calculate or track to support a defensible thermal-aging assessment.
+
+Do not assume that we are directly predicting SOH unless the available requirements support it.
+
+---
+
+### 6. Do I need to derate charging or power?
+
+This is a particularly important safety-boundary requirement.
+
+Determine what the platform would need to provide to support a **derating recommendation**.
+
+Consider:
+
+* maximum temperature
+* temperature rise rate
+* hotspot probability
+* cooling state
+* uncertainty
+* battery condition
+* operating mode
+* thermal risk level
+* forecasted thermal trajectory
+
+However, maintain the handbook's safety boundary.
+
+The analytics platform must not autonomously control a production BMS or safety actuator unless that requirement is explicitly established later.
+
+Clearly distinguish:
+
+```text
+Analytics / Advisory Recommendation
+vs
+Actual BMS Control
+```
+
+---
+
+### 7. Which vehicles need maintenance?
+
+Determine how thermal-management evidence could contribute to maintenance prioritization.
+
+Potential evidence may include:
+
+* recurring thermal anomalies
+* repeated overheating
+* sensor faults
+* cooling-system degradation
+* abnormal temperature gradients
+* thermal exposure history
+* increasing thermal residual
+* abnormal thermal response
+
+Determine what should constitute:
+
+```text
+Normal
+Monitor
+Maintenance Recommended
+High Priority
+```
+
+without inventing final thresholds.
+
+---
+
+### 8. Can I reduce the number of physical temperature sensors in my next-generation pack?
+
+This is directly connected to the virtual-sensing and sensor-placement work defined in the handbook.
+
+Analyze the requirement carefully.
+
+Determine how the platform would need to answer:
+
+```text
+Current sensor configuration
+        ↓
+Virtual sensing performance
+        ↓
+Sensor ablation
+        ↓
+Alternative sensor placement
+        ↓
+Prediction accuracy
+        ↓
+Hotspot coverage
+        ↓
+Fault isolation
+        ↓
+Uncertainty
+        ↓
+Recommended sensor configuration
+```
+
+The system must not recommend sensor reduction based only on average prediction error.
+
+Consider:
+
+* hotspot recall
+* maximum error
+* confidence
+* sensor fault isolation
+* spatial coverage
+* operating conditions
+* failure/fallback behavior
+
+This must remain consistent with the safety limitations defined in the handbook.
+
+---
+
+# 3. CONVERT CUSTOMER QUESTIONS INTO SYSTEM CAPABILITIES
+
+Create a mapping:
+
+```text id="vqm4kq"
+Customer Question
+        ↓
+Required Business Capability
+        ↓
+Required Thermal Analytics
+        ↓
+Required Data
+        ↓
+Potential Model / Logic
+        ↓
+Expected Output
+        ↓
+Evidence Required
+```
+
+For example, conceptually:
+
+```text
+"Which cells are showing thermal anomalies?"
+        ↓
+Cell-level thermal anomaly detection
+        ↓
+Temperature field + residuals + temporal behavior
+        ↓
+Cell/module temperature data
+        ↓
+Thermal anomaly logic/model
+        ↓
+Affected cells + severity + confidence
+        ↓
+Traceable evidence
+```
+
+Do not assume the exact final model.
+
+---
+
+# 4. DEFINE THE THERMAL MANAGEMENT DOMAIN MODEL
+
+Determine the important entities that the platform appears to need.
+
+Possible entities may include:
+
+```text
+Vehicle
+Battery Pack
+Module
+Cell
+Temperature Sensor
+Cooling System
+Thermal Event
+Thermal Anomaly
+Sensor Health
+Thermal Exposure
+Thermal Risk
+Maintenance Recommendation
+Sensor Configuration
+Virtual Sensor
+Experiment
+Model
+Prediction
+```
+
+For each identified entity, explain:
+
+```text
+Entity
+Purpose
+Relevant attributes
+Relationships
+Why it matters
+```
+
+Do not design the database yet.
+
+We are defining the **conceptual domain model**, not the schema.
+
+---
+
+# 5. DEFINE INPUTS AND OUTPUTS
+
+Determine what information the thermal-management platform appears to require.
+
+Separate inputs into categories:
+
+### Battery / Electrical
+
+* Current
+* Voltage
+* SOC
+* SOH
+* C-rate
+* relevant battery state
+
+### Thermal
+
+* Physical temperatures
+* Ambient temperature
+* Coolant temperature
+* Thermal history
+* Thermal gradients
+* Cooling state
+* Flow information
+
+### Spatial
+
+* Cell location
+* Module
+* Geometry
+* Neighbor relationships
+* Cooling position
+
+### Sensor / Data Quality
+
+* Sensor validity
+* Missing values
+* Sensor health
+* Calibration information
+* Time synchronization
+
+### Operational Context
+
+* Charging
+* Discharging
+* Drive-cycle behavior
+* Load
+* environmental conditions
+
+Do not assume an input exists simply because it would be useful.
+
+Classify each as:
+
+```text
+Confirmed
+Mentioned
+Inferred
+Needed but Not Yet Confirmed
+Unknown
+```
+
+---
+
+# 6. DEFINE THERMAL ANALYTICS OUTPUTS
+
+Determine which outputs the V1 platform should conceptually provide.
+
+Potential outputs may include:
+
+```text
+Temperature estimate
+Temperature map
+Maximum temperature
+Hotspot location
+Hotspot probability
+Temperature gradient
+Temperature trend
+Thermal anomaly score
+Thermal risk level
+Sensor health
+Cooling health
+Thermal exposure
+Thermal-aging indicator
+Overheating probability
+Derating recommendation
+Maintenance priority
+Sensor-reduction recommendation
+Confidence / uncertainty
+Evidence / explanation
+```
+
+For each, determine whether it is:
+
+```text
+Explicitly required
+Strongly implied
+Potential future capability
+Not currently justified
+```
+
+---
+
+# 7. DEFINE THE END-TO-END THERMAL WORKFLOW
+
+Create a technology-independent conceptual workflow such as:
+
+```text
+Vehicle / Battery Data
+        ↓
+Data Validation
+        ↓
+Thermal State Reconstruction
+        ↓
+Temperature Field
+        ↓
+Thermal Analytics
+        ├── Thermal Anomaly Detection
+        ├── Hotspot Identification
+        ├── Cooling Assessment
+        ├── Sensor Health
+        ├── Thermal Exposure
+        ├── Overheating Risk
+        └── Sensor Reduction Analysis
+        ↓
+Risk / Recommendation Layer
+        ↓
+Customer Dashboard
+```
+
+Refine this according to the actual V1 architecture.
+
+Do not choose frameworks or implementation technologies yet.
+
+---
+
+# 8. CONNECT THE V1 IDEA TO THE HANDBOOK
+
+Compare the V1 customer-facing requirements with the requirements from:
+
+```text id="1fd6y7"
+ECUlytics_TrustSense_Battery_Analytics_Internship_Handbook.pdf
+```
+
+Create:
+
+```text id="9d3tmb"
+V1 Capability
+      ↓
+Handbook Requirement
+      ↓
+Coverage
+      ↓
+Gap
+      ↓
+Additional Requirement
+```
+
+Pay particular attention to:
+
+* Virtual temperature sensing
+* Sensor reduction
+* Hotspot detection
+* Sensor fault detection
+* Uncertainty
+* OOD
+* Fallback
+* Cooling faults
+* Thermal exposure
+* Reproducibility
+* Safety boundary
+
+---
+
+# 9. CONNECT THE V1 IDEA TO THE RESEARCH PAPERS
+
+We have already identified research papers that can guide the virtual-sensor implementation.
+
+Determine which V1 requirements can potentially be supported by the research methodologies.
+
+Especially evaluate:
+
+```text
+Virtual Temperature Sensor
+        ↓
+V1 Customer Questions
+        ↓
+Research Method
+        ↓
+Required Adaptation
+        ↓
+Validation Needed
+```
+
+Do not claim that a research paper already solves a V1 capability unless the evidence supports it.
+
+---
+
+# 10. IDENTIFY WHAT IS ACTUALLY THE MVP / V1
+
+Do not assume that all eight customer questions must be fully solved immediately.
+
+Determine which capabilities appear to form the minimum credible **thermal-management V1**.
+
+Separate them into:
+
+```text
+Core V1
+V1 Supporting Capability
+Future Enhancement
+Research / Validation Required
+Not in Current Scope
+```
+
+The prioritization must be based on:
+
+* Customer value
+* Handbook requirements
+* Available data
+* Research evidence
+* Technical feasibility
+* Safety constraints
+* Dependency between capabilities
+
+---
+
+# 11. IDENTIFY DEPENDENCIES
+
+Determine which customer capabilities depend on others.
+
+For example:
+
+```text
+Virtual Temperature Sensing
+        ↓
+Temperature Field
+        ↓
+Hotspot Detection
+        ↓
+Overheating Risk
+        ↓
+Derating Recommendation
+```
+
+and:
+
+```text
+Physical + Virtual Temperature
+        ↓
+Residual Analysis
+        ↓
+Sensor Fault Detection
+```
+
+and:
+
+```text
+Temperature History
++
+Thermal Exposure
++
+Battery Aging Information
+        ↓
+Thermal Aging Assessment
+```
+
+Identify these dependencies carefully.
+
+This will later help us define the implementation order.
+
+---
+
+# 12. IDENTIFY IMPORTANT EDGE CASES
+
+Consider situations such as:
+
+* Missing temperature sensor
+* Faulty temperature sensor
+* Multiple faulty sensors
+* Sudden load increase
+* Rapid charging
+* High ambient temperature
+* Cooling flow reduction
+* Cooling failure
+* Temporary thermal spike
+* Sensor lag
+* Communication interruption
+* Unknown operating condition
+* Unseen battery chemistry
+* Unseen vehicle
+* Model uncertainty becoming high
+* Virtual sensor disagreement with physical sensor
+* Conflicting sensor measurements
+
+For each, determine what the system conceptually should do.
+
+Do not define final thresholds unless they already exist in the source material.
+
+---
+
+# 13. SAFETY BOUNDARY
+
+Maintain the safety boundaries from the handbook.
+
+The V1 analytics platform must be treated as an **advisory/analytical system**, not an autonomous production BMS controller.
+
+Especially for:
+
+```text
+Derating
+Overheating
+Sensor reduction
+Maintenance
+Safety decisions
+```
+
+Clearly distinguish:
+
+```text
+Prediction
+Detection
+Risk Assessment
+Recommendation
+Human Decision
+Actual BMS Control
+```
+
+Do not collapse these into one function.
+
+---
+
+# 14. REQUIRED QUESTIONS TO SEND BACK TO THE COMPANY
+
+After completing the analysis, produce a section:
+
+```text id="w5pz4z"
+QUESTIONS REQUIRING COMPANY CLARIFICATION
+```
+
+Only ask questions that are genuinely necessary to proceed.
+
+Prioritize questions around:
+
+### Product
+
+* Who is the primary customer/user?
+* Which of the eight questions are mandatory for V1?
+* What decisions are expected from the dashboard?
+
+### Data
+
+* What actual battery/vehicle datasets are available?
+* What signals are available?
+* What is the sampling rate?
+* Do we have cell-level temperatures?
+* Do we have cooling-system signals?
+* Do we have vehicle identifiers?
+* Do we have battery aging history?
+* Do we have ground-truth temperatures for virtual sensing?
+
+### Thermal System
+
+* What battery chemistry/pack configuration is the target?
+* What sensor configuration exists today?
+* What cooling architecture is being considered?
+* What constitutes an overheating event?
+* What constitutes a thermal anomaly?
+
+### Virtual Sensor
+
+* Which sensors are candidates for virtualization?
+* What target accuracy is expected?
+* What sensor-reduction decision criteria should be used?
+* Is hotspot coverage more important than average RMSE?
+* What operating conditions must be supported?
+
+### Recommendations
+
+* Should derating be advisory only?
+* What authority does the system have to issue maintenance recommendations?
+* Are thresholds company-defined or research-defined?
+
+### V1 Architecture
+
+* Which components in the supplied architecture are mandatory?
+* Which are illustrative?
+* Which data sources/interfaces already exist?
+* Which components are expected to be simulated?
+
+Do not ask questions that can already be answered from the handbook, existing documentation, research papers, or V1 architecture.
+
+---
+
+# 15. EXPECTED OUTPUT
+
+Produce a comprehensive:
+
+```text id="n8zsd8"
+PHASE 3 — ECUlytics V1 THERMAL MANAGEMENT PLATFORM ANALYSIS
+```
+
+with:
+
+1. V1 Architecture Analysis
+2. Digital Twin Exclusion Confirmation
+3. Customer Question Analysis
+4. Customer-to-Capability Mapping
+5. Thermal Domain Model
+6. Inputs and Data Requirements
+7. Thermal Analytics Outputs
+8. End-to-End Thermal Workflow
+9. Handbook-to-V1 Traceability
+10. Research-to-V1 Relevance
+11. V1 Capability Prioritization
+12. Capability Dependencies
+13. Edge Cases
+14. Safety Boundaries
+15. Missing Information
+16. Risks and Assumptions
+17. Company Clarification Questions
+18. Preliminary Thermal V1 Scope
+
+---
+
+# FINAL RULE
+
+This is still an **understanding and requirements-validation phase**.
+
+Do not:
+
+* Write production code
+* Create frontend components
+* Create backend APIs
+* Create database schemas
+* Select the final ML architecture
+* Train models
+* Create the final folder structure
+* Implement the dashboard
+* Implement the virtual sensor
+
+The objective is to understand exactly what the company means by **V1 Thermal Management** and translate the architecture + customer questions into a clear, testable, technically grounded problem definition.
+
+The working principle remains:
+
+```text
+Company V1 Idea
+        +
+Customer Questions
+        +
+Project Handbook
+        +
+Existing Documentation
+        +
+Research Evidence
+        ↓
+Complete Thermal Management Understanding
+        ↓
+Clarification Questions
+        ↓
+Validated Requirements
+        ↓
+Solution Design
+        ↓
+Architecture
+        ↓
+Implementation
+```
+
+**Do not proceed to implementation until the necessary company questions have been identified and the thermal-management scope is sufficiently clear.**

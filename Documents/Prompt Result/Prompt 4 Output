@@ -1,0 +1,217 @@
+# PHASE 2B — VIRTUAL SENSOR RESEARCH & IEEE BENCHMARK ANALYSIS
+
+## A. Paper Identification
+
+- **Primary Implementation & Benchmarking Reference (IEEE Paper)**: 
+  *Enhancing Battery Thermal Management With Virtual Temperature Sensor Using Hybrid CNN-LSTM* (Bamati et al., IEEE Transactions on Transportation Electrification, 2024).
+- **Supporting Technical Reference (SSRN Paper)**: 
+  *Virtual temperature sensors for second-life battery packs* (White & Swan, SSRN, 2024).
+
+---
+
+## B. IEEE Paper Deep Analysis
+
+The IEEE paper proposes a data-driven approach to estimate battery surface temperatures using a hybrid deep learning model.
+
+### Problem Definition
+Estimating the surface temperature (ST) of a lithium-ion battery under dynamic driving profiles and varying/extreme ambient temperatures without relying on direct physical surface temperature sensors, mitigating sensor cost and reliability issues.
+
+### Inputs
+The model explicitly uses the following variables, measured over time:
+- Voltage ($V$)
+- Current ($I$)
+- Ambient Temperature ($T_a$)
+- Current integration over time ($\int I dt$)
+- **Moving averages** of the above variables computed over the preceding 30 time steps.
+
+### Target
+- **Battery Surface Temperature (ST / $T_s$)** of the individual cell.
+
+### Sensor Configuration
+- **Not specified in paper as a pack-level spatial configuration.** The paper evaluates single-cell temperature estimation. It assumes cell voltage, current, and ambient temperature sensors are available, and the surface temperature sensor is virtually replaced.
+
+### Data Preparation
+1. **Raw Data**: Time-series logs of $V, I, T_a, T_s$.
+2. **Feature Engineering**: Calculation of $\int I dt$ and 30-step moving averages for all raw inputs.
+3. **Normalization**: Z-score normalization applied to all features to standardize varying units.
+4. **Sequence / Window Formation**: Data is framed into 30-second/30-step lookback windows.
+5. **Train/Validation/Test**: Leave-one-battery-out (Dataset 1) or specific drive cycle holdouts (Dataset 3).
+
+### Model Architecture (P CNN-LSTM)
+The most successful architecture was the Parallel CNN-LSTM (P CNN-LSTM).
+- **Input Layer**: Accepts the sequential feature windows.
+- **CNN Component (Parallel Branch 1)**: 
+  - 1D Convolutional Layer: 16 filters, kernel size 3.
+  - Activation: ReLU.
+  - Normalization: Batch Normalization layer.
+  - Pooling: Max Pooling (pool size 2, stride 1).
+- **LSTM Component (Parallel Branch 2)**: 
+  - 2 LSTM layers.
+  - Hidden dimensions: 200 units per layer.
+- **Output/Fusion Layer**: 
+  - The outputs of the CNN and LSTM branches are concatenated.
+  - Fully Connected (Dense) Layer 1: 200 neurons + Dropout (0.2).
+  - Fully Connected Layer 2: 100 neurons + Dropout (0.2).
+  - Fully Connected Layer 3: 100 neurons + Dropout (0.5).
+  - Regression Layer: Single continuous output (Predicted $T_s$).
+- **Training Strategy**: 
+  - Optimizer: Adam.
+  - Learning Rate: 0.001.
+  - Batch Size: Varied by dataset (32, 64, or 1).
+  - Epochs: Not strictly fixed; used Early Stopping (patience = 20 epochs without loss improvement).
+
+### Reasoning Behind Hybrid CNN-LSTM
+The CNN branch effectively acts as an automated feature extractor, identifying localized spatial/feature correlations (like instantaneous heat generation spikes from current pulses) and reducing dimensionality. The LSTM branch tracks long-term temporal dependencies (like gradual heat accumulation and capacity degradation over a cycle). Processing them in *parallel* prevents the sequence bottlenecks seen in series configurations, allowing the network to weigh immediate feature correlations and long-term memory independently.
+
+---
+
+## C. SSRN Paper Deep Analysis
+
+The SSRN paper proposes a strictly mathematical/physics-based approach for Virtual Temperature Sensing (VTS) in second-life batteries.
+
+### Problem Definition
+Predicting real-time temperatures at unmonitored locations within a sealed EV battery pack repurposed for second-life grid storage, where adding physical sensors is economically unviable.
+
+### Inputs
+- Measured temperature of an active internal cell ($T_z$).
+- Measured ambient temperature ($T_\infty$).
+- Operating time / Pack Power (to determine heat generation rates).
+
+### Target
+- Temperature of an unmonitored corner cell ($T_x$).
+
+### Methodology / Architecture
+- **Simplified Lumped Thermal Model**: Uses recursive finite-difference equations based on fundamental energy balances (Newton's Law of Cooling, Joule heating, thermal conduction).
+- **Parameters**: Relies on 7 empirically determined constant parameters (e.g., mass ratios, convection/radiation coefficients, thermal time constants).
+- **Optimization**: Uses the Generalized Reduced Gradient (GRG) Nonlinear solving method (via Microsoft Excel Solver) to fit the 7 parameters to experimental training data.
+
+### Validation
+Validated against a 2019 Tesla Model 3 SR+ battery pack under constant power discharges (4h, 2h, 1h rates). Showed inherent "error decay" (initial bad guesses converge to true temperatures rapidly due to the physics equations).
+
+---
+
+## D. Paper Comparison
+
+| Feature | IEEE Paper (P CNN-LSTM) | SSRN Paper (RC Thermal Model) |
+| :--- | :--- | :--- |
+| **Approach** | Deep Learning (Data-Driven) | First-Principles Physics (Equivalent Circuit) |
+| **Target** | Cell Surface Temperature | Specific Unmonitored Pack Location (Corner Cell) |
+| **Inputs** | $V, I, T_a$, moving averages | $T_z$ (measured internal temp), $T_\infty$, Power |
+| **Training** | Gradient Descent (Adam), Z-score prep | GRG Nonlinear Solver (Excel), bounded physical constants |
+| **Computational Cost** | High (Requires GPU for training) | Extremely Low (Runs in Excel) |
+| **Interpretability** | Black-box | Highly interpretable (outputs represent heat capacities/ratios) |
+| **Generalization** | Fails on extreme Out-of-Distribution data | Generalizes well as long as cooling physics remain constant |
+
+---
+
+## E. IEEE Reproduction Specification
+
+To reproduce the IEEE **P CNN-LSTM** model as a benchmark baseline:
+
+1. **Dataset Requirements**: Time-series logs of $V, I$, and ambient temp ($T_a$), with target surface temp ($T_s$). 
+2. **Preprocessing**:
+   - Resample data to 0.1 Hz (10-second intervals).
+   - Compute cumulative $\int I dt$.
+   - Compute rolling 30-step (300-second) moving averages for $V, I, T_a, \int I dt$.
+   - Apply Z-score normalization using training set statistics.
+3. **Sequence Construction**: Create sliding windows of length 30 steps.
+4. **Model Architecture**:
+   - Two input heads receiving the same 30-step sequence.
+   - Head 1 (CNN): Conv1D(16, kernel=3) -> ReLU -> BatchNorm -> MaxPool1D(2, stride=1).
+   - Head 2 (LSTM): LSTM(200) -> LSTM(200).
+   - Concat(Head 1, Head 2) -> Dense(200, Dropout 0.2) -> Dense(100, Dropout 0.2) -> Dense(100, Dropout 0.5) -> Dense(1).
+5. **Training Config**: Adam optimizer, LR=0.001, MSE loss, Early Stopping (patience=20).
+6. **Expected Output**: A continuous scalar prediction of $T_s$.
+
+*Reproduction Gap*: The paper does not specify the exact initialization seeds or the precise padding method for the moving averages at the start of a cycle.
+
+---
+
+## F. Benchmarking Specification
+
+Based on the IEEE paper, virtual sensors in TrustSense-BMS should be benchmarked using the following protocol:
+
+- **Metrics**: Root Mean Square Error (RMSE), Mean Absolute Error (MAE), and Maximum Absolute Error (MAXE).
+- **Data Splits**: 
+  - Do not randomly shuffle time-series data.
+  - Split by completely separate drive cycles (e.g., Train on UDDS/LA92, Test on HWFET/US06) OR split by separate cells/batteries.
+- **Test Conditions**: Must include varying ambient temperatures (e.g., dynamic shifts mimicking -20°C to 25°C) and dynamic load profiles, not just constant current discharge.
+- **Baselines**: Compare the P CNN-LSTM against a standard LSTM and a simple feedforward DNN.
+
+---
+
+## G. TrustSense Requirement Mapping
+
+| TrustSense Requirement | IEEE Method Coverage | SSRN Method Coverage | Missing / Requires Adaptation |
+| :--- | :--- | :--- | :--- |
+| **Reconstruct Unmeasured Temp** | Covered | Covered | - |
+| **Transparent Baseline** | Not Covered | **Covered** | SSRN serves as the transparent RC baseline. |
+| **Spatial Field Modeling** | Not Covered (Single cell only) | Partially Covered (2 nodes) | Needs adaptation to GNN for full N-node pack modeling. |
+| **Sensor Reduction/Ablation** | Not Covered | Partially Covered | Needs systematic masking logic to evaluate optimal $N$ sensors. |
+| **Uncertainty / Confidence** | **Not Covered** | **Not Covered** | Must add a probabilistic head (e.g., GPR or Quantile Regression). |
+| **OOD / Safe Fallback** | **Not Covered** | **Not Covered** | Must integrate physics-residual bounds to flag OOD conditions. |
+
+---
+
+## H. Research-to-Our-Data Compatibility
+
+| Factor | Compatibility | Notes |
+| :--- | :--- | :--- |
+| **Input Signals ($V, I, T_a$)** | **Compatible** | PyBaMM synthetic data will natively provide these. |
+| **Sampling Rate (0.1 Hz)** | **Compatible** | We can downsample/upsample our telemetry logs to 10s intervals. |
+| **Spatial Pack Geometry** | **Incompatible** | IEEE models a single cell. TrustSense requires full-pack spatial modeling (dozens of cells). |
+| **Target Definition** | **Partially Compatible** | IEEE targets Surface Temp. TrustSense targets full thermal fields and hotspots. |
+
+---
+
+## I. Required Adaptations
+
+To adapt the IEEE research into the final TrustSense-BMS system, the following modifications are mandatory:
+
+1. **Spatial Representation Adaptation**: The input layer must be modified from a 1D sequence of single-cell metrics to a Graph structure (nodes = cells, edges = thermal adjacency) to predict the entire pack's thermal field simultaneously, rather than running $N$ isolated CNN-LSTMs.
+2. **Sensor-Mask Adaptation**: The input must accept a binary mask indicating which physical sensors are "installed" versus "ablated", allowing the model to dynamically infer missing nodes.
+3. **Uncertainty Layer**: The final Dense layer must be replaced with a probabilistic layer (e.g., outputting mean and variance) to fulfill the Handbook's requirement for confidence intervals.
+4. **Physics-Informed Loss**: The MSE loss function must be updated to penalize thermodynamic impossibilities (e.g., violating Joule heating bounds), converting the model from a pure data-driven hybrid to a PINN.
+
+---
+
+## J. Limitations & Risks
+
+- **OOD Brittleness (IEEE)**: The CNN-LSTM is purely data-driven. If TrustSense encounters a cooling failure or extreme current spike not present in the PyBaMM training data, the CNN-LSTM will likely confidently predict an incorrect, unsafe temperature.
+- **Spatial Ignorance (IEEE)**: The IEEE model ignores thermal conduction from neighboring cells. If an adjacent cell goes into thermal runaway, this model won't predict the heat transfer.
+- **Hardware Constraints**: The P CNN-LSTM requires 13 layers (including heavy dense and recurrent layers). Running this continuously for hundreds of cells on an edge device (Jetson Orin Nano) alongside an LLM is a major latency/OOM risk.
+
+---
+
+## K. Recommended Virtual Sensor Development Stages
+
+Based on the handbook and research, development should follow this sequence:
+
+1. **Stage 1 (Data Prep)**: Generate synthetic pack data via PyBaMM and establish the 30-step windowing pipeline.
+2. **Stage 2 (Transparent Baseline)**: Implement the SSRN Lumped Thermal (RC) model. Establish baseline RMSE using only physical formulas and Excel/SciPy solvers.
+3. **Stage 3 (Advanced Baseline)**: Reproduce the IEEE P CNN-LSTM model for single-node prediction.
+4. **Stage 4 (Benchmark)**: Benchmark the SSRN and IEEE models against each other to quantify the ML accuracy gain.
+5. **Stage 5 (Spatial/GNN Adaptation)**: Replace the CNN-LSTM with a Graph Neural Network (GNN) to map the entire pack simultaneously.
+6. **Stage 6 (Physics & Uncertainty)**: Add physics-informed loss (PINN) and Gaussian Process/Quantile layers for confidence intervals.
+7. **Stage 7 (Ablation)**: Test the system with 100%, 75%, and 50% sensor masks to determine the optimal reduction threshold.
+
+---
+
+## L. Open Questions
+
+- What specific battery geometry and cell count will our PyBaMM simulation use, and how will we map it to an adjacency matrix for the final GNN?
+- Will we simulate forced liquid cooling or passive natural convection? (This drastically changes the required physics bounds).
+- Does the Jetson Orin Nano have sufficient Tensor Cores to run a PyTorch GNN inference in under 100ms?
+
+---
+
+## M. Final Technical Recommendation
+
+**Initial Approach:** 
+Do not immediately build a complex GNN or Transformer. 
+
+**Step 1**: Implement the SSRN paper's Equivalent Circuit/Lumped Thermal model. It satisfies the Handbook's requirement for a "transparent baseline," requires virtually no compute, and proves whether basic physics can solve the problem.
+
+**Step 2**: Implement the IEEE paper's **Parallel CNN-LSTM** exactly as specified in the reproduction section. This will serve as our "Advanced Benchmark."
+
+**Step 3**: Only once both baselines are producing valid RMSE metrics should we evolve the architecture into the final TrustSense-BMS GNN/PINN design. The IEEE paper proves that combining spatial extractors (CNN) and temporal trackers (LSTM) is highly effective; we will evolve this concept by replacing the 1D-CNN with a Graph Convolutional Network (GCN) to handle pack-level 3D spatial dynamics while retaining the LSTM for time-series memory.

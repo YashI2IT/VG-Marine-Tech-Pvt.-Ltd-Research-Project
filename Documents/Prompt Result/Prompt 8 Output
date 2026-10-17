@@ -1,0 +1,145 @@
+# PHASE 6 — COMPLETE COMPANY ARCHITECTURE ANALYSIS
+
+## A. Complete Architecture Documentation Inventory
+The `Architecture Documentation By Company/` folder contains seven core files defining the system:
+1. **`Batt_Temp_Intelligence_Platform_EcuLytics_v_1.png`**: The global 8-layer macro-architecture diagram.
+2. **`Full Temp Intelligence Platform View.png`**: A sub-architecture diagram detailing the 4-step internal flow of the thermal intelligence engine.
+3. **`Step2_Cloud_Ingestion_Device_Management_Guide.pdf`**: Defines MQTT/HTTPS ingestion, API gateways, tenant routing, schemas, and event bus (Kafka) requirements.
+4. **`Cyber_Trust_Layer_Guide.pdf`**: Details "Step 3" of the macro-architecture, defining the AI IDS, physics-based plausibility, quarantine workflows, and the `SAFE/SUSPICIOUS/BLOCK` trust fusion boundary.
+5. **`Blockchain_Compliance_Layer_Development_Testing_Acceptance_Guide.pdf`**: Details "Step 6" of the macro-architecture, defining the off-chain/on-chain boundary, Merkle hashing, Fabric chaincode, and the Battery Passport lifecycle.
+6. **`Step7_RAG_Knowledge_Intelligence_Guide.pdf`**: Details the ingestion of OEM manuals/DVP reports, chunking, hybrid retrieval, and grounded LLM generation with strict citation/refusal boundaries.
+7. **`Step8_Website_Full_Stack_UI_Guide.pdf`**: Defines the React/Next.js frontend, FastAPI BFF, WebSocket real-time channels, and RBAC-controlled user dashboards.
+
+## B. Complete Platform Architecture (Macro Flow)
+Reconstructed from the documents, the technology-independent flow is:
+1. **Edge/Vehicle**: Emits raw telemetry via TCU.
+2. **Ingestion Layer**: Authenticates device, validates schema/time, normalizes payload, buffers to event queue.
+3. **Trust & Security Layer**: Evaluates behavior (IDS) and battery physics. Drops/quarantines bad data; passes `SAFE` data.
+4. **Feature & Data Layer**: Synchronizes data, handles missing values, calculates moving averages/derivatives.
+5. **Thermal Intelligence Layer**: Infers hidden temperatures $\rightarrow$ reconstructs spatial map $\rightarrow$ detects anomalies/risks $\rightarrow$ issues recommendations.
+6. **Compliance Layer**: Periodically hashes critical events and business state to an immutable ledger for provenance.
+7. **Knowledge Layer**: Contextualizes alerts by retrieving relevant engineering documents via RAG.
+8. **User Interface**: Subscribes to real-time streams, queries historical/RAG APIs, and visualizes actionable insights.
+
+## C. Architecture Layer-by-Layer Analysis
+- **Layer 2 (Ingestion)**: *Purpose*: Safely absorb fleet scale. *Boundary*: Terminates TLS, normalizes to JSON/Avro, applies backpressure. *Failure*: Rejects data, gracefully degrades via queues.
+- **Layer 3 (Cyber/Trust)**: *Purpose*: Prevent poisoned data from destroying AI accuracy. *Boundary*: Sits between ingestion and feature engineering. *Owner*: Security/ML team.
+- **Layer 5 (Thermal)**: *Purpose*: The core product value. *Boundary*: Consumes clean features, produces diagnostic state.
+- **Layer 6 (Blockchain)**: *Purpose*: Multi-party trust and compliance. *Boundary*: Strictly off-chain storage for heavy payloads, on-chain for hashes/state.
+- **Layer 7 (RAG)**: *Purpose*: Explainability. *Boundary*: Read-only access to diagnostics; strictly bounded to approved document corpus.
+- **Layer 8 (UI)**: *Purpose*: Visualization. *Boundary*: Stateless presentation layer governed by BFF API contracts.
+
+## D. Thermal Platform Analysis (Sub-Architecture)
+The internal thermal logic operates in 4 distinct steps:
+- **Step 1 (Virtual Sensor)**: Maps sparse physical inputs to hidden cell temperatures.
+- **Step 2 (State Estimation)**: Applies graph topology and physics to build the *Full Thermal Map*.
+- **Step 3 (Engines)**: Six parallel engines (Hotspot, Risk, Cooling, Sensor, Aging, Forecast) operate on the thermal map to classify anomalies.
+- **Step 4 (Decision)**: Converts the engine outputs into human-readable recommendations and alerts.
+
+## E. Cloud Ingestion Analysis (Macro Step 2)
+- **Workflow**: `TCU $\rightarrow$ API Gateway $\rightarrow$ MQTT Broker $\rightarrow$ Schema Validation $\rightarrow$ Message Bus (Kafka)`.
+- **Responsibilities**: Device registry, mTLS/token auth, rate limiting, duplicate/replay protection, UTC time synchronization.
+- **Data Quality**: Explicitly handles stale data and missing fields before they reach analytics.
+
+## F. Cybersecurity / Trust Analysis (Macro Step 3)
+- **Workflow**: `Identity $\rightarrow$ Schema $\rightarrow$ Transformer IDS $\rightarrow$ Physics Plausibility $\rightarrow$ Trust Fusion`.
+- **Decisions**: Outputs `SAFE`, `SUSPICIOUS`, or `BLOCK`.
+- **Constraint**: The Trust decision must fuse ML anomaly scores with deterministic physics limits. No single ML score dictates a block.
+
+## G. Blockchain / Compliance Analysis (Macro Step 6)
+- **Workflow**: `Off-chain DB $\rightarrow$ 60s Canonical Batch $\rightarrow$ Merkle Root $\rightarrow$ Fabric Chaincode $\rightarrow$ Ledger`.
+- **Constraint**: *High-volume telemetry stays off-chain.* The ledger only stores Merkle roots, asset identities, and state transitions (e.g., Manufactured $\rightarrow$ In-Service).
+- **Privacy**: Employs Private Data Collections (PDCs) for commercially sensitive data.
+
+## H. RAG Analysis (Macro Step 7)
+- **Workflow**: `Parse $\rightarrow$ Chunk $\rightarrow$ Embed $\rightarrow$ Hybrid Retrieval $\rightarrow$ Rerank $\rightarrow$ Grounded Prompt $\rightarrow$ Answer`.
+- **Safety**: Strict instruction-data separation. Must refuse unanswerable queries rather than hallucinate. Citations are mandatory.
+
+## I. Website / Full-Stack Analysis (Macro Step 8)
+- **Users**: OEM engineers, Fleet operators, Service/Warranty analysts.
+- **Architecture**: Next.js SPA $\rightarrow$ FastAPI BFF $\rightarrow$ Domain Services.
+- **Real-time**: WebSocket/SSE channel for live alerts and dynamic heatmap updates.
+
+## J. End-to-End Data Flow
+- **Mutable/Real-time**: Telemetry flows rapidly through Kafka, dropping into time-series DBs (PostgreSQL/Timescale).
+- **Immutable/Historical**: 60s batches are hashed; roots are submitted to Hyperledger.
+- **Inference**: Telemetry passes through the CNN-LSTM and thermal engines dynamically; output is cached for the UI.
+- **Text/Vectors**: Documents are processed asynchronously into a Vector DB.
+
+## K. Canonical Data Contracts
+- **Ingestion Envelope**: `tenant_id`, `vehicle_id`, `event_time_utc`, `sequence_no`, `signals`, `edge_quality`.
+- **Trust Envelope**: Appends `trust_status`, `cyber_score`, `physics_score`, `quarantine_flag`.
+- **Thermal Diagnostic**: Appends `hotspot_location`, `risk_score`, `recommendation`.
+- **Blockchain Anchor**: `batch_id`, `merkle_root`, `schema_version`.
+
+## L. Inter-Service Interfaces
+- **Ingestion $\rightarrow$ Trust**: Kafka topic (Raw normalized telemetry).
+- **Trust $\rightarrow$ Thermal**: Kafka topic (SAFE trusted telemetry).
+- **Trust $\rightarrow$ SIEM/Quarantine**: Dedicated audit queues.
+- **Thermal $\rightarrow$ BFF**: REST (historical) + WebSocket (live stream).
+- **BFF $\rightarrow$ RAG**: REST API (User prompt + vehicle diagnostic context).
+
+## M. Acceptance Criteria (Highlights)
+- **Latency**: P95 Ingest-to-bus $\le$ 500ms; Trust decision $\le$ 50ms; RAG streaming response $\le$ 3s.
+- **Accuracy**: 0 duplicate events; 100% invalid schema rejection.
+- **Security**: 0 cross-tenant data leaks; 0 high/critical vulnerabilities at release.
+- **Blockchain**: 1-bit tamper must fail Merkle verification.
+
+## N. Testing & Validation Strategy
+- **Pyramid**: Unit (parsers) $\rightarrow$ Component (API auth) $\rightarrow$ Integration (Kafka flows) $\rightarrow$ E2E (Login to Heatmap).
+- **Specialized**:
+  - *Attack/Fault Injection*: Replays, spoofing, sensor stuck-at faults to test Cyber layer.
+  - *Load/Stress*: Caliper for Blockchain; K6 for API gateway.
+  - *Adversarial*: Prompt-injection testing for RAG.
+
+## O. Development Lifecycle
+- **Phases**: Scope Freeze $\rightarrow$ Contract Freeze $\rightarrow$ Design Freeze $\rightarrow$ Component Ready $\rightarrow$ Integrated Validation $\rightarrow$ Pilot Acceptance $\rightarrow$ Production Release.
+
+## P. Security & Safety Boundaries
+- **NO AUTONOMOUS CONTROL**: Cloud analytics provide *advisory* output only. They do not write limits back to the vehicle BMS.
+- **Strict Tenant Isolation**: RBAC and `tenant_id` must be enforced at every API endpoint, message queue partition, and RAG retrieval step.
+- **Fail-Safe**: If Cyber IDS fails, degrade to physics-only. If RAG lacks evidence, explicitly abstain.
+
+## Q. Architecture Dependencies
+- **Strict Linear Dependency**: Ingestion $\rightarrow$ Trust $\rightarrow$ Thermal $\rightarrow$ UI.
+- **Asynchronous/Parallel**: Blockchain (anchors data post-ingestion) and RAG (indexes documents offline) can be developed loosely coupled to the main pipeline.
+
+## R. Architectural Risks
+- **Overengineering**: The 60-second Merkle batching on Hyperledger Fabric is complex and risks becoming a bottleneck if fleet size scales massively.
+- **Data Duplication**: Passing data through multiple microservices risks redundant storage if not managed via strict TTLs on the event bus.
+- **Latency Budget**: Adding transformer-based IDS *and* CNN-LSTM inference in the real-time path may violate the 500ms P95 latency target without heavy GPU/optimization investments.
+
+## S. Contradictions / Inconsistencies
+- **Naming Collision**: The *global* architecture labels its columns 1 through 8 (e.g., Step 3 = Cyber, Step 5 = Thermal). However, the *Thermal Intelligence Platform View* uses "Step 1 to Step 4" to describe the internal flow of the thermal analytics alone. This requires careful namespace management during development.
+- **Blockchain Overlap**: The RAG guide suggests answering "Passport/cyber event" queries, implying RAG must query the Blockchain layer. However, the data flow for RAG-to-Blockchain integration is not explicitly documented.
+
+## T. Handbook Traceability
+- The Handbook's requirement for a "tamper-proof audit trail" is fully satisfied by the detailed Merkle/Fabric architecture in the Step 6 guide.
+- The Handbook's safety boundary ("Advisory only") is explicitly reinforced across the UI, Decision Engine, and Trust guides.
+
+## U. V1 Thermal Traceability
+- *Q: Why is Module 4 overheating?* $\rightarrow$ UI requests RAG $\rightarrow$ RAG queries Thermal Engine (Hotspot) + Vector DB $\rightarrow$ Generates cited explanation.
+- *Q: Is a temperature sensor faulty?* $\rightarrow$ Thermal Engine compares physical vs. virtual $\rightarrow$ Outputs sensor health diagnostic to UI.
+
+## V. Research Traceability
+- **Virtual Sensor**: Maps directly to IEEE CNN-LSTM benchmark (Phase 4).
+- **Cyber IDS**: Maps directly to Transformer-based CAN IDS papers listed in the Cyber guide.
+- **Thermal Reconstruction**: Requires 3D spatial mapping (Zhao 2024), which remains a known data gap.
+
+## W. Missing Information
+- **Pack Topology Data**: We lack the 3D physical adjacency matrix needed for Step 2 Thermal Graph propagation.
+- **Cooling Ground Truth**: We lack the BTMS coolant flow telemetry required for the Cooling Health Engine.
+- **IdP Selection**: The Identity Provider (e.g., Keycloak, Auth0) for the SSO/OIDC requirement is unspecified.
+
+## X. Master Architecture Traceability Matrix
+| Requirement | Architecture Component | Interface / Contract | Acceptance Evidence |
+| :--- | :--- | :--- | :--- |
+| Telemetry absorption | Step 2: API GW / MQTT | `tenant_id` + JSON | Load test P95 $\le$ 500ms |
+| Prevent spoofed data | Step 3: Cyber Trust | Trust Envelope | Attack/Fault injection suite |
+| Find Hotspots | Step 5: Thermal Engine | $\Delta T$ Spatial Map | Hotspot accuracy metrics |
+| Tamper-proof audit | Step 6: Blockchain | Merkle Root | 1-bit tamper test |
+| Explainable insights | Step 7: RAG | Cited Text Response | Faithfulness / Abstention metrics |
+| Advisory Dashboard | Step 8: Next.js UI | REST/WebSocket | UAT + Traceability audit |
+
+## Y. Final System Understanding
+The ECUlytics Platform is a highly decoupled, microservice-based SaaS platform designed to safely absorb battery telemetry and transform it into explainable engineering insights. It enforces a strict **trust boundary** at the edge, ensuring only physically plausible, authenticated data reaches the AI. The core product is the **Thermal Intelligence Pipeline**, which uses a virtual sensor to reconstruct the battery's temperature field and evaluate risks. Because AI can hallucinate and clouds can be hacked, the platform wraps this intelligence in two critical safety nets: a **Blockchain Ledger** to guarantee forensic immutability, and a **RAG Knowledge Assistant** to ground AI alerts in approved, verifiable OEM documentation. The system is strictly **advisory**, stopping at the UI dashboard and never writing control loops back to the vehicle.

@@ -1,0 +1,26 @@
+{
+  "name": "eculytics-trustsense-bms",
+  "version": "1.0.0",
+  "description": "ECUlytics & TrustSense-BMS: Enterprise Battery Thermal Intelligence, Virtual Sensing & Cryptographic Provenance Platform",
+  "private": true,
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "build": "npm run build:backend && npm run build:frontend",
+    "start:backend": "npm --prefix backend run start",
+    "start:frontend": "npm --prefix frontend run start"
+  },
+  "keywords": [
+    "bms",
+    "battery-management",
+    "virtual-sensing",
+    "cnn-lstm",
+    "thermal-intelligence",
+    "blockchain",
+    "provenance"
+  ],
+  "author": "VG Marine Tech Pvt. Ltd",
+  "license": "UNLICENSED"
+}
