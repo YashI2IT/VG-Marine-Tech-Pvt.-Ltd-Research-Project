@@ -1,0 +1,31 @@
+{
+  "testPackId": "BATT-MAR-001",
+  "ambientTemperatureC": 25.0,
+  "nominalVoltageV": 3.6,
+  "cells": [
+    {
+      "cellId": 1,
+      "voltageV": 3.62,
+      "currentA": -2.4,
+      "surfaceTempC": 26.1
+    },
+    {
+      "cellId": 2,
+      "voltageV": 3.61,
+      "currentA": -2.4,
+      "surfaceTempC": 26.3
+    },
+    {
+      "cellId": 3,
+      "voltageV": 3.63,
+      "currentA": -2.4,
+      "surfaceTempC": 26.0
+    },
+    {
+      "cellId": 4,
+      "voltageV": 3.59,
+      "currentA": -2.4,
+      "surfaceTempC": 26.8
+    }
+  ]
+}

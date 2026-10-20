@@ -47,65 +47,45 @@ By combining **deep learning virtual temperature sensing (hybrid 1D-CNN + LSTM)*
 
 ---
 
-## 3. Directory Structure
+## 3. Repository Architecture & Directory Structure
 
 ```
 VG Marine Tech Pvt. Ltd Research Project/
-├── backend/                              # Express + TypeScript API Server
-│   ├── src/
-│   │   ├── api/                          # REST API Route Handlers
-│   │   │   ├── admin.ts                  # Admin operations (stats, user pool, traffic, billing)
-│   │   │   ├── auth.ts                   # Login, register, logout, session /me
-│   │   │   ├── dashboard.ts              # Fleet overview, thermal risk, anomalies
-│   │   │   └── virtual-sensor.ts         # ML model prediction & MAT file handler
-│   │   ├── db/                           # Drizzle ORM schema & database connection
-│   │   ├── middleware/                   # JWT authentication guards
-│   │   └── index.ts                      # Server entry point, request logger, error handling
-│   ├── data/                             # Persistent data storage (users.json)
-│   ├── .env.example                      # Backend environment template
-│   ├── package.json                      # Backend dependencies & scripts
-│   └── tsconfig.json                     # TypeScript compiler configuration
+├── 1) Production/                        # Enterprise Deployment & Release Engineering
+│   ├── config/                           # Production Nginx reverse-proxy & environment templates
+│   ├── docker/                           # Multi-stage Dockerfiles (backend & frontend) & docker-compose
+│   ├── deployment/                       # Systemd daemons, automated deploy.sh & health runbooks
+│   └── README.md                         # Production operations & scaling guide
 │
-├── frontend/                             # Next.js 16 Web Application (App Router)
-│   ├── src/
-│   │   ├── app/                          # Next.js App Router Pages
-│   │   │   ├── (app)/                    # Authenticated Layout (AppShell)
-│   │   │   │   ├── admin/                # Administration Suite
-│   │   │   │   │   ├── page.tsx          # Master Admin Hub (KPI tiles, quick actions)
-│   │   │   │   │   ├── traffic/          # Telemetry Ingress & User Activity
-│   │   │   │   │   ├── users/            # User Pool Management & Role Assignment
-│   │   │   │   │   ├── maintenance/      # Fleet Battery Service & Work Orders
-│   │   │   │   │   └── billing/          # Invoices, Quotas & Blockchain Ledger
-│   │   │   │   ├── dashboard/            # Executive Thermal Overview
-│   │   │   │   ├── virtual-sensor/       # Live Model Inference Bench
-│   │   │   │   ├── fleet/                # Commercial Fleet Telemetry
-│   │   │   │   ├── thermal-intelligence/ # Hotspot analysis, cooling, aging, forecast
-│   │   │   │   └── maintenance/          # Work order tracking
-│   │   │   ├── login/                    # Sign-in page
-│   │   │   ├── register/                 # User registration page
-│   │   │   └── forgot-password/          # Password recovery
-│   │   ├── components/                   # Reusable UI, Charts, Heatmaps & Layout
-│   │   └── services/                     # Typed API client services
-│   ├── .env.example                      # Frontend environment template
-│   └── package.json                      # Next.js dependencies & scripts
+├── 2) Integration/                       # End-to-End Testing & Cross-Service Contracts
+│   ├── contracts/                        # OpenAPI 3.1 specification (api-contract.json)
+│   ├── e2e/                              # Virtual sensor inference & telemetry pipeline E2E tests
+│   ├── postman/                          # Automated API test collections for QA
+│   ├── scripts/                          # Automated run_integration_tests.py test runner
+│   └── README.md                         # Integration test documentation & guidelines
 │
-├── models/                               # Machine Learning & AI Virtual Sensor
-│   ├── virtual_sensor/                   # Virtual sensor API & inference scripts
-│   ├── cnn_lstm_battery_temperature.keras# Trained Neural Network weights
-│   └── wykht8y7tg-1/                     # Panasonic 18650PF experimental battery dataset
+├── 3) Development/                       # Core Application Workspace (Frontend & Backend)
+│   ├── frontend/                         # Next.js 16 Web Application (Arcana Auth, Admin Hub, Telemetry)
+│   ├── backend/                          # Express + TypeScript API Gateway (Port 3001)
+│   ├── docs/                             # Developer onboarding (LOCAL_SETUP.md & API_REFERENCE.md)
+│   └── README.md                         # Development workspace guidelines & contribution standards
 │
-├── ESCI_2027_TrustSenseBMS_Review/       # Research Paper Package (IEEE ESCI-2027)
-│   ├── 06_Manuscript_Skeleton_IEEE/      # LaTeX manuscript (main.tex, references.bib)
-│   ├── 07_Proposed_Figures/              # Figure blueprints & Mermaid specifications
-│   └── 02_Verified_Literature_Matrix.csv # Curated 20-paper peer-reviewed evidence matrix
+├── 4) Testing/                           # Unit Testing & Database Management Verification
+│   ├── unit/                             # Algorithm boundary checks, 5-sigma OOD & auth validation
+│   ├── db_management/                    # DB schema validations, migration tests & user persistence
+│   ├── fixtures/                         # Mock battery telemetry packets & sample user profiles
+│   ├── scripts/                          # Automated run_unit_tests.py test runner
+│   └── README.md                         # Testing manifesto & coverage criteria
 │
-├── Documents/                            # Architecture blueprints & internship handbooks
-├── tools/                                # Utility & maintenance scripts
-├── start.bat                             # One-click startup script for Windows
+├── Documents/                            # Architecture blueprints, research papers & IEEE ESCI dossiers
+│   └── ESCI_2027_TrustSenseBMS_Review/   # Manuscript skeleton, verified figures & evidence matrix
+├── models/                               # Calibrated AI Virtual Sensor weights & Panasonic datasets
+├── new models/                           # Production retrained CNN-LSTM checkpoints & scalers
+├── start.bat                             # One-click platform launcher (Windows)
 ├── stop.bat                              # One-click service shutdown script
-├── status.bat                            # Instant health check script
-├── package.json                          # Root package management
-└── README.md                             # Master project documentation
+├── status.bat                            # Instant liveness probe & status check
+├── package.json                          # Workspace orchestration & npm script targets
+└── README.md                             # Master project overview & documentation
 ```
 
 ---

@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ../../
+      dockerfile: Production/docker/Dockerfile.backend
+    container_name: eculytics-backend-prod
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - FRONTEND_URL=http://localhost:3000
+    ports:
+      - "3001:3001"
+    volumes:
+      - ../../models:/app/models:ro
+      - backend-data:/app/data
+
+  frontend:
+    build:
+      context: ../../
+      dockerfile: Production/docker/Dockerfile.frontend
+    container_name: eculytics-frontend-prod
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:3001/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  backend-data:

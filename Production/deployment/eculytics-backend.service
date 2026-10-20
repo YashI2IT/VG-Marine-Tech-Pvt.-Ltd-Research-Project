@@ -1,0 +1,15 @@
+[Unit]
+Description=ECUlytics & TrustSense-BMS Backend API Gateway
+After=network.target
+
+[Service]
+Type=simple
+User=eculytics
+WorkingDirectory=/opt/eculytics/Development/backend
+ExecStart=/usr/bin/npm run dev
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production PORT=3001
+
+[Install]
+WantedBy=multi-user.target

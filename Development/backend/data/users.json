@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "name": "System Administrator",
+    "email": "admin@eculytics.com",
+    "passwordHash": "e4157dbc74604779e566162fe75a638e:bf0aa314be4993e6082dfb2b028cfb24db2109aa09274e8ade4d62bea7e0fa4e6eb6a5eb8ebd19b08e93689c709ba5bf08def03570a7353bffe2b9b890921680",
+    "role": "admin",
+    "createdAt": "2026-10-16T02:23:46.721Z"
+  },
+  {
+    "id": 2,
+    "name": "VG Marine Operator",
+    "email": "user@vgmarine.com",
+    "passwordHash": "e850e5d5cec75e88577fee06a51c779d:f71a1f63caead1868f28916f5a23e6327798531bdc4f244083e6a7a9722a535d5ec7f77583497fb552325250c02fe9607af17dec228a9c13dd3c62dcc63e4ba4",
+    "role": "user",
+    "createdAt": "2026-10-16T02:23:46.786Z"
+  },
+  {
+    "id": 3,
+    "name": "Test Engineer",
+    "email": "engineer@eculytics.com",
+    "passwordHash": "012b5ef477407759fe48ca04eee24dfe:79c1b6641ef6c160f21376499247e342394cb4299dfd37bb4fd6a9a1ecb1d8249a30e05c358aea7b8f2c11fe7237eb81e8680ed3bed99872d69f117e3619c335",
+    "role": "operator",
+    "createdAt": "2026-10-16T02:24:20.398Z"
+  },
+  {
+    "id": 4,
+    "name": "Test Safety Engineer",
+    "email": "safety_engineer@vgmarine.com",
+    "passwordHash": "a4eaf8231348ea2d5a227e9fe3256bcd:bb31847f847505977a4ceb24d79e3211091c61de36ee0c2559db5de5e088815b8b66a02ddf25cc21646589cb183765c5483ff3755a27174d17a74ff679d3cddc",
+    "role": "operator",
+    "createdAt": "2026-10-17T16:42:08.546Z"
+  }
+]

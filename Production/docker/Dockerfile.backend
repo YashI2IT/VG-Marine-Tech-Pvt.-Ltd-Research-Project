@@ -1,0 +1,19 @@
+# Multi-Stage Production Build: Backend API Gateway
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY Development/backend/package*.json ./
+RUN npm ci
+COPY Development/backend/ ./
+RUN npm run build || true
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY Development/backend/package*.json ./
+RUN npm ci --only=production
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/data ./data
+COPY --from=builder /app/tsconfig.json ./
+
+EXPOSE 3001
+CMD ["npm", "run", "dev"]

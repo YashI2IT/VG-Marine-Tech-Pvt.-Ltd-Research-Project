@@ -20,10 +20,10 @@ if %ERRORLEVEL% equ 0 (
 )
 
 echo [2/3] Starting Backend API Server (Port 3001)...
-start "ECUlytics Backend API" cmd /k "cd /d %~dp0backend && npm run dev"
+start "ECUlytics Backend API" cmd /k "cd /d %~dp0Development\backend && npm run dev"
 
 echo [3/3] Starting Frontend Next.js Server (Port 3000)...
-start "ECUlytics Frontend App" cmd /k "cd /d %~dp0frontend && npm run dev"
+start "ECUlytics Frontend App" cmd /k "cd /d %~dp0Development\frontend && npm run dev"
 
 echo.
 echo =====================================================================

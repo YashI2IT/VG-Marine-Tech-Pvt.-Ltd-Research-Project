@@ -1,0 +1,64 @@
+{
+  "info": {
+    "name": "ECUlytics & TrustSense-BMS Integration Test Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:3001/health"
+      }
+    },
+    {
+      "name": "Root Platform Info",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:3001/"
+      }
+    },
+    {
+      "name": "Admin Login",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:3001/api/auth/login"
+      }
+    },
+    {
+      "name": "Admin Stats",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:3001/api/admin/stats"
+      }
+    },
+    {
+      "name": "Admin User Pool",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:3001/api/admin/users"
+      }
+    },
+    {
+      "name": "Admin Traffic Analytics",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:3001/api/admin/traffic"
+      }
+    },
+    {
+      "name": "Admin Maintenance",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:3001/api/admin/maintenance"
+      }
+    },
+    {
+      "name": "Admin Billing",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:3001/api/admin/billing"
+      }
+    }
+  ]
+}

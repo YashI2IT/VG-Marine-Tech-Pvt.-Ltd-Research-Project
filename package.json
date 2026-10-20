@@ -4,13 +4,15 @@
   "description": "ECUlytics & TrustSense-BMS: Enterprise Battery Thermal Intelligence, Virtual Sensing & Cryptographic Provenance Platform",
   "private": true,
   "scripts": {
-    "dev:backend": "npm --prefix backend run dev",
-    "dev:frontend": "npm --prefix frontend run dev",
-    "build:backend": "npm --prefix backend run build",
-    "build:frontend": "npm --prefix frontend run build",
+    "dev:backend": "npm --prefix Development/backend run dev",
+    "dev:frontend": "npm --prefix Development/frontend run dev",
+    "build:backend": "npm --prefix Development/backend run build",
+    "build:frontend": "npm --prefix Development/frontend run build",
     "build": "npm run build:backend && npm run build:frontend",
-    "start:backend": "npm --prefix backend run start",
-    "start:frontend": "npm --prefix frontend run start"
+    "start:backend": "npm --prefix Development/backend run start",
+    "start:frontend": "npm --prefix Development/frontend run start",
+    "test": "python Testing/scripts/run_unit_tests.py",
+    "test:integration": "python Integration/scripts/run_integration_tests.py"
   },
   "keywords": [
     "bms",

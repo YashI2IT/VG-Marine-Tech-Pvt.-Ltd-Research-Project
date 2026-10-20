@@ -19,6 +19,7 @@ dist/
 # Logs
 logs/
 *.log
+*.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -45,7 +46,8 @@ Thumbs.db
 # Uploads & Temporary Cache
 uploads/*
 !uploads/.gitkeep
-tools/legacy/*
+Development/backend/uploads/*
+!Development/backend/uploads/.gitkeep
 
 # Large Datasets and Binary Archives (Exceeds GitHub 100MB limits)
 Documents/Dataset/

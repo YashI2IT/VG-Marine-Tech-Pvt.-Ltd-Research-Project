@@ -1,0 +1,101 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ECUlytics & TrustSense-BMS API Gateway",
+    "version": "1.0.0",
+    "description": "REST API contract for battery thermal analytics, user pool, admin operations, and virtual sensing."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Liveness check",
+        "responses": {
+          "200": {
+            "description": "Service operational"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Authenticate user session",
+        "requestBody": {
+          "required": true
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "summary": "Register new operator or administrator",
+        "requestBody": {
+          "required": true
+        }
+      }
+    },
+    "/api/admin/stats": {
+      "get": {
+        "summary": "Platform overview metrics",
+        "security": [
+          {
+            "jwtCookie": []
+          }
+        ]
+      }
+    },
+    "/api/admin/traffic": {
+      "get": {
+        "summary": "Telemetry & ingress analytics",
+        "security": [
+          {
+            "jwtCookie": []
+          }
+        ]
+      }
+    },
+    "/api/admin/users": {
+      "get": {
+        "summary": "User pool administration",
+        "security": [
+          {
+            "jwtCookie": []
+          }
+        ]
+      }
+    },
+    "/api/admin/maintenance": {
+      "get": {
+        "summary": "Fleet battery maintenance tasks",
+        "security": [
+          {
+            "jwtCookie": []
+          }
+        ]
+      }
+    },
+    "/api/admin/billing": {
+      "get": {
+        "summary": "Platform quotas & ledger transactions",
+        "security": [
+          {
+            "jwtCookie": []
+          }
+        ]
+      }
+    },
+    "/api/virtual-sensor/predict": {
+      "post": {
+        "summary": "CNN-LSTM battery temperature inference",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {}
+          }
+        }
+      }
+    }
+  }
+}
