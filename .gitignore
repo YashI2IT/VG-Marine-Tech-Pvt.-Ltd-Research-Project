@@ -54,3 +54,9 @@ Documents/Dataset/
 Documents/Docs.zip
 *.zip
 *.mat
+
+# Excluded from Git Tracking as requested
+Documents/
+models/
+new models/
+*.bat

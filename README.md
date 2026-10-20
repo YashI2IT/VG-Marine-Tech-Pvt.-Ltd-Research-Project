@@ -77,14 +77,8 @@ VG Marine Tech Pvt. Ltd Research Project/
 │   ├── scripts/                          # Automated run_unit_tests.py test runner
 │   └── README.md                         # Testing manifesto & coverage criteria
 │
-├── Documents/                            # Architecture blueprints, research papers & IEEE ESCI dossiers
-│   └── ESCI_2027_TrustSenseBMS_Review/   # Manuscript skeleton, verified figures & evidence matrix
-├── models/                               # Calibrated AI Virtual Sensor weights & Panasonic datasets
-├── new models/                           # Production retrained CNN-LSTM checkpoints & scalers
-├── start.bat                             # One-click platform launcher (Windows)
-├── stop.bat                              # One-click service shutdown script
-├── status.bat                            # Instant liveness probe & status check
 ├── package.json                          # Workspace orchestration & npm script targets
+├── .gitignore                            # Git exclusion rules
 └── README.md                             # Master project overview & documentation
 ```
 
