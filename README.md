@@ -1,7 +1,7 @@
 # ECUlytics & TrustSense-BMS
 
 > **Enterprise Battery Thermal Intelligence, Virtual Sensing & Cryptographic Provenance Platform**  
-> Developed for **VG Marine Tech Pvt. Ltd** | Academic & Scientific Alignment: **IEEE ESCI-2027**
+> Developed for **VG Marine Tech Pvt. Ltd** 
 
 ---
 
@@ -144,17 +144,6 @@ npm run dev
 | **Billing & Ledger** | `http://localhost:3000/admin/billing` | Quotas, Invoices & Blockchain Ledger |
 | **Backend Health** | `http://localhost:3001/health` | Service Liveness Probe |
 | **Backend Root** | `http://localhost:3001/` | Gateway Metadata & Route Index |
-
----
-
-## 7. Research Paper Alignment (IEEE ESCI-2027)
-
-The project codebase directly aligns with our research publication for the **9th IEEE International Conference on Emerging Smart Computing and Informatics (ESCI-2027)**:
-
-* **Title**: *“A Critical Review of Deep Learning-Based Virtual Temperature Sensing for Lithium-Ion Batteries: CNN–LSTM Models, Trust-Aware Data Validation, and Data Provenance”*
-* **Submission Deadline**: October 15, 2026
-* **Manuscript**: Located in [`ESCI_2027_TrustSenseBMS_Review/06_Manuscript_Skeleton_IEEE/main.tex`](ESCI_2027_TrustSenseBMS_Review/06_Manuscript_Skeleton_IEEE/main.tex)
-* **Verified Evidence Base**: Strictly 20 peer-reviewed reference studies `[1]–[20]` detailing experimental thermal estimation, cyber-defense against False Data Injection Attacks (FDIA), and Hyperledger Fabric Merkle root complexity.
 
 ---
 
