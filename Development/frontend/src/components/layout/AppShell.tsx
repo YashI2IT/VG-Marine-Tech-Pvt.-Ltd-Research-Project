@@ -21,6 +21,8 @@ import {
   Wrench,
   X,
   Zap,
+  ArrowLeft,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -59,6 +61,9 @@ export function AppShell({
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
+  const isAdmin = user.role === "admin";
+  const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
+
   const allLinks = [...adminLinks, ...userLinks];
   const active = allLinks.find((l) => {
     if ("exact" in l && l.exact) return pathname === l.href;
@@ -91,87 +96,132 @@ export function AppShell({
             <BrandMark size={40} />
             <div>
               <p className="font-semibold leading-tight text-slate-900">ECUlytics</p>
-              <p className="text-[11px] text-slate-400">TrustSense-BMS</p>
+              <p className="text-[11px] text-slate-400">
+                {isAdminRoute ? "Admin Console" : "TrustSense-BMS"}
+              </p>
             </div>
           </div>
 
-          {/* Tenant Pill */}
+          {/* Environment/Tenant Pill */}
           <div className="px-4 py-3">
-            <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Tenant</p>
-            <div className="mt-1 flex items-center justify-between rounded-full bg-[#eff6ff] px-4 py-1.5 text-xs font-medium text-slate-700">
-              <span>Global Fleet Ops</span>
-              <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-            </div>
+            <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+              {isAdminRoute ? "Console Environment" : "Tenant"}
+            </p>
+            {isAdminRoute ? (
+              <div className="mt-1 flex items-center justify-between rounded-full bg-slate-900 px-4 py-1.5 text-xs font-semibold text-white shadow-sm">
+                <span>Admin Operations</span>
+                <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
+              </div>
+            ) : (
+              <div className="mt-1 flex items-center justify-between rounded-full bg-[#eff6ff] px-4 py-1.5 text-xs font-medium text-slate-700">
+                <span>Global Fleet Ops</span>
+                <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+              </div>
+            )}
           </div>
 
-          {/* Navigation Links with Admin & User Sections */}
+          {/* Navigation Links */}
           <nav className="flex-1 space-y-4 overflow-auto px-3 pb-4" aria-label="Primary">
-            {/* Administration Section */}
-            <div>
-              <div className="mb-1.5 flex items-center justify-between px-3">
-                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">
-                  Administration
-                </span>
-                <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[9px] font-semibold text-blue-700">
-                  Admin
-                </span>
-              </div>
-              <div className="space-y-1">
-                {adminLinks.map((link) => {
-                  const Icon = link.icon;
-                  const isActive = link.exact
-                    ? pathname === link.href
-                    : pathname === link.href || pathname.startsWith(link.href + "/");
-                  return (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className={cn(
-                        "flex items-center gap-3 rounded-full px-4 py-2 text-sm font-medium transition",
-                        isActive
-                          ? "bg-slate-900 text-white shadow-sm"
-                          : "text-slate-600 hover:bg-[#eff6ff] hover:text-slate-900"
-                      )}
-                      onClick={() => setOpen(false)}
-                    >
-                      <Icon className="h-4 w-4" aria-hidden />
-                      {link.name}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
+            {isAdminRoute ? (
+              /* ================= ADMIN DASHBOARD NAVIGATION (ONLY ADMIN LINKS) ================= */
+              <div>
+                <div className="mb-2 flex items-center justify-between px-3">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-900">
+                    Administration
+                  </span>
+                  <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[9px] font-semibold uppercase text-white">
+                    Root
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  {adminLinks.map((link) => {
+                    const Icon = link.icon;
+                    const isActive = link.exact
+                      ? pathname === link.href
+                      : pathname === link.href || pathname.startsWith(link.href + "/");
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={cn(
+                          "flex items-center gap-3 rounded-full px-4 py-2.5 text-sm font-medium transition",
+                          isActive
+                            ? "bg-slate-900 text-white shadow-sm font-semibold"
+                            : "text-slate-600 hover:bg-[#eff6ff] hover:text-slate-900"
+                        )}
+                        onClick={() => setOpen(false)}
+                      >
+                        <Icon className="h-4 w-4" aria-hidden />
+                        {link.name}
+                      </Link>
+                    );
+                  })}
+                </div>
 
-            {/* User Workspace Section */}
-            <div>
-              <div className="mb-1.5 px-3">
-                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
-                  User Workspace
-                </span>
+                {/* Back to User Workspace Quick Switcher */}
+                <div className="pt-6 px-1">
+                  <Link
+                    href="/dashboard"
+                    className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50/80 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-white hover:border-slate-300 hover:text-blue-700 transition shadow-sm"
+                    onClick={() => setOpen(false)}
+                  >
+                    <span className="flex items-center gap-2">
+                      <ArrowLeft className="h-3.5 w-3.5" />
+                      Fleet Workspace
+                    </span>
+                    <span className="text-[10px] text-slate-400">Exit Admin</span>
+                  </Link>
+                </div>
               </div>
-              <div className="space-y-1">
-                {userLinks.map((link) => {
-                  const Icon = link.icon;
-                  const isActive = pathname === link.href || pathname.startsWith(link.href + "/");
-                  return (
+            ) : (
+              /* ================= USER WORKSPACE NAVIGATION ================= */
+              <div>
+                {/* Admin Switcher for privileged users */}
+                {isAdmin && (
+                  <div className="mb-3 px-1">
                     <Link
-                      key={link.href}
-                      href={link.href}
-                      className={cn(
-                        "flex items-center gap-3 rounded-full px-4 py-2 text-sm font-medium transition",
-                        isActive
-                          ? "bg-[#2563eb] text-white shadow-sm shadow-blue-200"
-                          : "text-slate-500 hover:bg-[#eff6ff] hover:text-slate-800"
-                      )}
+                      href="/admin"
+                      className="flex items-center justify-between rounded-2xl bg-slate-900 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-black transition shadow-sm"
                       onClick={() => setOpen(false)}
                     >
-                      <Icon className="h-4 w-4" aria-hidden />
-                      {link.name}
+                      <span className="flex items-center gap-2">
+                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                        Admin Dashboard
+                      </span>
+                      <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
                     </Link>
-                  );
-                })}
+                  </div>
+                )}
+
+                <div className="mb-1.5 px-3">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                    User Workspace
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  {userLinks.map((link) => {
+                    const Icon = link.icon;
+                    const isActive = pathname === link.href || pathname.startsWith(link.href + "/");
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={cn(
+                          "flex items-center gap-3 rounded-full px-4 py-2 text-sm font-medium transition",
+                          isActive
+                            ? "bg-[#2563eb] text-white shadow-sm shadow-blue-200"
+                            : "text-slate-500 hover:bg-[#eff6ff] hover:text-slate-800"
+                        )}
+                        onClick={() => setOpen(false)}
+                      >
+                        <Icon className="h-4 w-4" aria-hidden />
+                        {link.name}
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
           </nav>
 
           {/* User Profile & Sign Out */}
@@ -207,7 +257,7 @@ export function AppShell({
           <header className="panel flex h-16 items-center justify-between px-5">
             <div className="flex items-center gap-3">
               <p className="text-sm font-semibold text-slate-800">{active?.name ?? "ECUlytics"}</p>
-              {pathname.startsWith("/admin") && (
+              {isAdminRoute && (
                 <span className="rounded-full bg-slate-900 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
                   Admin Panel
                 </span>
