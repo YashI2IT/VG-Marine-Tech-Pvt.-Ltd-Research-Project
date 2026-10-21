@@ -45,7 +45,7 @@ export default function AdminMaintenancePage() {
           title="Fleet & Infrastructure Maintenance"
           description="Central operations for fleet battery work orders, physical-to-virtual sensor calibrations, and system node health."
           crumbs={[
-            { href: "/dashboard", label: "Dashboard" },
+            { href: "/admin", label: "Admin Hub" },
             { href: "/admin", label: "Admin Hub" },
             { label: "Maintenance" },
           ]}

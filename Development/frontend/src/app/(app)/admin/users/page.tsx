@@ -118,7 +118,7 @@ export default function UserPoolPage() {
           title="User Pool Management"
           description="View, provision, and audit authenticated operator, analyst, and administrator accounts."
           crumbs={[
-            { href: "/dashboard", label: "Dashboard" },
+            { href: "/admin", label: "Admin Hub" },
             { href: "/admin", label: "Admin Hub" },
             { label: "User Pool" },
           ]}

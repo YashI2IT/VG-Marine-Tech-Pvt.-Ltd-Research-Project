@@ -8,16 +8,18 @@ export const tenants = pgTable("tenants", {
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 255 }).notNull().unique(),
   passwordHash: text("password_hash").notNull(),
-  role: varchar("role", { length: 50 }).notNull().default("viewer"),
+  role: varchar("role", { length: 50 }).notNull().default("user"),
+  status: varchar("status", { length: 50 }).notNull().default("active"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const tenantUsers = pgTable("tenant_users", {
-  tenantId: serial("tenant_id").references(() => tenants.id),
-  userId: serial("user_id").references(() => users.id),
+  tenantId: integer("tenant_id").references(() => tenants.id),
+  userId: integer("user_id").references(() => users.id),
 }, (t) => ({
   pk: primaryKey({ columns: [t.tenantId, t.userId] })
 }));
@@ -48,7 +50,7 @@ export const processingJobs = pgTable("processing_jobs", {
   id: varchar("id", { length: 255 }).primaryKey(),
   datasetVersionId: varchar("dataset_version_id", { length: 255 }).references(() => datasetVersions.id).notNull(),
   modelVersion: varchar("model_version", { length: 50 }).notNull(),
-  status: varchar("status", { length: 50 }).notNull().default("QUEUED"), // UPLOADED, VALIDATING, QUEUED, PROCESSING, COMPLETED, FAILED
+  status: varchar("status", { length: 50 }).notNull().default("QUEUED"),
   resultS3Key: varchar("result_s3_key", { length: 512 }),
   metrics: jsonb("metrics"),
   errorMessage: text("error_message"),

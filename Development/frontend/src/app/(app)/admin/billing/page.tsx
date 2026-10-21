@@ -31,7 +31,7 @@ export default function AdminBillingPage() {
         title="Billing, Quotas & Blockchain Ledger"
         description="Monitor enterprise subscription tier, API credit meters, monthly invoices, and immutable Hyperledger Fabric transaction commits."
         crumbs={[
-          { href: "/dashboard", label: "Dashboard" },
+          { href: "/admin", label: "Admin Hub" },
           { href: "/admin", label: "Admin Hub" },
           { label: "Billing & Ledger" },
         ]}

@@ -32,7 +32,7 @@ export default function AdminHubPage() {
       <PageHeader
         title="Admin Control Center"
         description="Master control for platform telemetry traffic, user pool access, fleet maintenance pipelines, and billing transactions."
-        crumbs={[{ href: "/dashboard", label: "User Workspace" }, { label: "Admin Hub" }]}
+        crumbs={[{ label: "Admin Console" }, { label: "Admin Hub" }]}
       />
 
       <QueryGate loading={loading} error={error} onRetry={reload}>

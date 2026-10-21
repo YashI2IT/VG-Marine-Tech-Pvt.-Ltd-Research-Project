@@ -1,50 +1,48 @@
 "use client";
 
 import { BrandMark } from "@/components/brand/BrandMark";
-import { logout } from "@/services/auth";
 import { cn } from "@/lib/utils";
-import {
-  Activity,
-  BarChart3,
-  Battery,
-  Car,
-  CreditCard,
-  FileText,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Settings,
-  ShieldCheck,
-  Thermometer,
-  UserRound,
-  Users,
-  Wrench,
-  X,
-  Zap,
-  ArrowLeft,
-  ChevronRight,
-} from "lucide-react";
+import { logout } from "@/services/auth";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import {
+  LayoutDashboard,
+  Cpu,
+  Truck,
+  Car,
+  Flame,
+  AlertTriangle,
+  Wrench,
+  Activity,
+  FileText,
+  Settings,
+  User,
+  LogOut,
+  Menu,
+  X,
+  ShieldCheck,
+  Users,
+  CreditCard,
+} from "lucide-react";
 
 const userLinks = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Virtual Sensor", href: "/virtual-sensor", icon: Activity },
-  { name: "Fleet", href: "/fleet", icon: Car },
-  { name: "Vehicles", href: "/vehicles", icon: Battery },
-  { name: "Thermal Intelligence", href: "/thermal-intelligence", icon: Thermometer },
-  { name: "Thermal Events", href: "/thermal-events", icon: Zap },
+  { name: "Virtual Sensor", href: "/virtual-sensor", icon: Cpu },
+  { name: "Fleet", href: "/fleet", icon: Truck },
+  { name: "Vehicles", href: "/vehicles", icon: Car },
+  { name: "Thermal Intelligence", href: "/thermal-intelligence", icon: Flame },
+  { name: "Thermal Events", href: "/thermal-events", icon: AlertTriangle },
   { name: "Maintenance", href: "/maintenance", icon: Wrench },
   { name: "Sensor Analysis", href: "/sensor-analysis", icon: Activity },
   { name: "Reports", href: "/reports", icon: FileText },
   { name: "Settings", href: "/settings", icon: Settings },
-  { name: "Profile", href: "/profile", icon: UserRound },
+  { name: "Profile", href: "/profile", icon: User },
 ];
 
 const adminLinks = [
   { name: "Admin Hub", href: "/admin", icon: ShieldCheck, exact: true },
-  { name: "User Traffic", href: "/admin/traffic", icon: BarChart3 },
+  { name: "User Traffic", href: "/admin/traffic", icon: Activity },
   { name: "User Pool", href: "/admin/users", icon: Users },
   { name: "Maintenance Ops", href: "/admin/maintenance", icon: Wrench },
   { name: "Billing & Ledger", href: "/admin/billing", icon: CreditCard },
@@ -62,10 +60,9 @@ export function AppShell({
   const [open, setOpen] = useState(false);
 
   const isAdmin = user.role === "admin";
-  const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
+  const links = isAdmin ? adminLinks : userLinks;
 
-  const allLinks = [...adminLinks, ...userLinks];
-  const active = allLinks.find((l) => {
+  const active = links.find((l) => {
     if ("exact" in l && l.exact) return pathname === l.href;
     return pathname === l.href || pathname.startsWith(l.href + "/");
   });
@@ -73,31 +70,41 @@ export function AppShell({
   return (
     <div className="min-h-screen px-3 py-3 md:px-5 md:py-4">
       <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-[1600px] flex-col gap-4 lg:flex-row">
-        {/* Mobile Header */}
-        <div className="flex items-center justify-between rounded-full bg-white px-4 py-3 shadow-sm lg:hidden">
-          <div className="flex items-center gap-2 font-semibold">
+        {/* Mobile Header Bar */}
+        <div className="flex items-center justify-between panel px-4 py-3 lg:hidden">
+          <div className="flex items-center gap-3">
             <BrandMark size={32} />
-            ECUlytics
+            <div>
+              <p className="text-sm font-bold text-slate-900 leading-tight">ECUlytics</p>
+              <p className="text-[10px] text-slate-400">
+                {isAdmin ? "Admin Console" : "TrustSense-BMS"}
+              </p>
+            </div>
           </div>
-          <button type="button" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen((v) => !v)}>
-            {open ? <X /> : <Menu />}
+          <button
+            type="button"
+            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 transition"
+            onClick={() => setOpen(!open)}
+            aria-label="Toggle navigation menu"
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar Navigation */}
         <aside
           className={cn(
-            "panel z-20 flex w-full flex-col lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)] lg:w-64 lg:shrink-0",
-            open ? "flex" : "hidden lg:flex"
+            "panel flex w-full flex-col lg:w-64 shrink-0 transition-all duration-200",
+            open ? "block" : "hidden lg:flex"
           )}
         >
-          {/* Logo */}
+          {/* Brand Header */}
           <div className="flex items-center gap-3 border-b border-[#eef3f9] px-5 py-5">
             <BrandMark size={40} />
             <div>
               <p className="font-semibold leading-tight text-slate-900">ECUlytics</p>
               <p className="text-[11px] text-slate-400">
-                {isAdminRoute ? "Admin Console" : "TrustSense-BMS"}
+                {isAdmin ? "Admin Console" : "TrustSense-BMS"}
               </p>
             </div>
           </div>
@@ -105,9 +112,9 @@ export function AppShell({
           {/* Environment/Tenant Pill */}
           <div className="px-4 py-3">
             <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-              {isAdminRoute ? "Console Environment" : "Tenant"}
+              {isAdmin ? "Console Environment" : "Tenant"}
             </p>
-            {isAdminRoute ? (
+            {isAdmin ? (
               <div className="mt-1 flex items-center justify-between rounded-full bg-slate-900 px-4 py-1.5 text-xs font-semibold text-white shadow-sm">
                 <span>Admin Operations</span>
                 <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
@@ -120,10 +127,10 @@ export function AppShell({
             )}
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links - STRICT RBAC */}
           <nav className="flex-1 space-y-4 overflow-auto px-3 pb-4" aria-label="Primary">
-            {isAdminRoute ? (
-              /* ================= ADMIN DASHBOARD NAVIGATION (ONLY ADMIN LINKS) ================= */
+            {isAdmin ? (
+              /* ================= ADMIN ONLY NAVIGATION (ADMIN WILL ONLY SEE THE ADMIN PART) ================= */
               <div>
                 <div className="mb-2 flex items-center justify-between px-3">
                   <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-900">
@@ -157,42 +164,10 @@ export function AppShell({
                     );
                   })}
                 </div>
-
-                {/* Back to User Workspace Quick Switcher */}
-                <div className="pt-6 px-1">
-                  <Link
-                    href="/dashboard"
-                    className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50/80 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-white hover:border-slate-300 hover:text-blue-700 transition shadow-sm"
-                    onClick={() => setOpen(false)}
-                  >
-                    <span className="flex items-center gap-2">
-                      <ArrowLeft className="h-3.5 w-3.5" />
-                      Fleet Workspace
-                    </span>
-                    <span className="text-[10px] text-slate-400">Exit Admin</span>
-                  </Link>
-                </div>
               </div>
             ) : (
-              /* ================= USER WORKSPACE NAVIGATION ================= */
+              /* ================= USER WORKSPACE NAVIGATION (NEW CREATED USER SEES HIS PART) ================= */
               <div>
-                {/* Admin Switcher for privileged users */}
-                {isAdmin && (
-                  <div className="mb-3 px-1">
-                    <Link
-                      href="/admin"
-                      className="flex items-center justify-between rounded-2xl bg-slate-900 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-black transition shadow-sm"
-                      onClick={() => setOpen(false)}
-                    >
-                      <span className="flex items-center gap-2">
-                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                        Admin Dashboard
-                      </span>
-                      <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
-                    </Link>
-                  </div>
-                )}
-
                 <div className="mb-1.5 px-3">
                   <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
                     User Workspace
@@ -234,7 +209,9 @@ export function AppShell({
                 <p className="truncate text-sm font-semibold text-slate-800">{user.name || user.email}</p>
                 <div className="flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                  <p className="text-xs capitalize text-slate-400">{user.role}</p>
+                  <p className="text-xs capitalize text-slate-400">
+                    {user.role === "admin" ? "Platform Administrator" : user.role === "user" ? "Fleet Operator" : user.role}
+                  </p>
                 </div>
               </div>
             </div>
@@ -256,8 +233,8 @@ export function AppShell({
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           <header className="panel flex h-16 items-center justify-between px-5">
             <div className="flex items-center gap-3">
-              <p className="text-sm font-semibold text-slate-800">{active?.name ?? "ECUlytics"}</p>
-              {isAdminRoute && (
+              <p className="text-sm font-semibold text-slate-800">{active?.name ?? (isAdmin ? "Admin Console" : "ECUlytics")}</p>
+              {isAdmin && (
                 <span className="rounded-full bg-slate-900 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
                   Admin Panel
                 </span>

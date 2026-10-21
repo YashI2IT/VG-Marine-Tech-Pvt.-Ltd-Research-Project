@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
 export interface AuthenticatedRequest extends Request {
@@ -21,3 +21,17 @@ export const requireAuth = (req: AuthenticatedRequest, res: Response, next: Next
     return res.status(401).json({ error: "Unauthorized: Invalid token" });
   }
 };
+
+export const requireRole = (allowedRoles: string[]) => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized: No authenticated user session" });
+    }
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ error: "Forbidden: Insufficient privileges for this resource" });
+    }
+    next();
+  };
+};
+
+export const requireAdmin = requireRole(["admin"]);

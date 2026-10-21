@@ -48,7 +48,7 @@ export default function TrafficAnalyticsPage() {
         title="User Traffic & Telemetry Ingress"
         description="Real-time monitoring of user activity, virtual sensor inference demand, telemetry ingestion throughput, and system latency."
         crumbs={[
-          { href: "/dashboard", label: "Dashboard" },
+          { href: "/admin", label: "Admin Hub" },
           { href: "/admin", label: "Admin Hub" },
           { label: "User Traffic" },
         ]}

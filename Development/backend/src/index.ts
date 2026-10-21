@@ -1,3 +1,4 @@
+import { initDb } from "./db";
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -83,7 +84,8 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-app.listen(port, () => {
+app.listen(port, async () => {
+  await initDb();
   console.log(`=======================================================`);
   console.log(`  ECUlytics & TrustSense-BMS API Gateway`);
   console.log(`  Listening at: http://localhost:${port}`);
