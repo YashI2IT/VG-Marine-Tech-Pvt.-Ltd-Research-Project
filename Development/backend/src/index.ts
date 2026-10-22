@@ -7,6 +7,7 @@ import authRoutes from "./api/auth";
 import dashboardRoutes from "./api/dashboard";
 import adminRoutes from "./api/admin";
 import virtualSensorRoutes from "./api/virtual-sensor";
+import trustsenseRoutes from "./api/trustsense";
 
 dotenv.config();
 
@@ -47,7 +48,8 @@ app.get("/", (req: Request, res: Response) => {
       auth: "/api/auth",
       dashboard: "/api/dashboard",
       admin: "/api/admin",
-      virtualSensor: "/api/virtual-sensor"
+      virtualSensor: "/api/virtual-sensor",
+      trustSense: "/api/trustsense"
     }
   });
 });
@@ -66,6 +68,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/virtual-sensor", virtualSensorRoutes);
+app.use("/api/trustsense", trustsenseRoutes);
 
 // 404 Route Handler
 app.use((req: Request, res: Response) => {

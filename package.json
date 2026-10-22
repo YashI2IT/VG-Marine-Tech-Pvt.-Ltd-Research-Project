@@ -12,7 +12,9 @@
     "start:backend": "npm --prefix Development/backend run start",
     "start:frontend": "npm --prefix Development/frontend run start",
     "test": "python Testing/scripts/run_unit_tests.py",
-    "test:integration": "python Integration/scripts/run_integration_tests.py"
+    "test:integration": "python Integration/scripts/run_integration_tests.py",
+    "inference": "python models/inference_service.py",
+    "test:trustsense": "node Integration/scripts/test_trustsense_pipeline.js"
   },
   "keywords": [
     "bms",

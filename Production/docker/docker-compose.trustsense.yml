@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: trustsense-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
+      POSTGRES_DB: ${POSTGRES_DB:-eculytics}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Thermal AI Virtual Sensor Inference Service (FastAPI + TensorFlow CNN-LSTM)
+  thermal-inference:
+    build:
+      context: ../..
+      dockerfile: Production/docker/Dockerfile.inference
+    container_name: trustsense-thermal-ai
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - TF_ENABLE_ONEDNN_OPTS=0
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 3. Backend Gateway & Provenance Engine (Node.js Express + Drizzle ORM)
+  backend-gateway:
+    build:
+      context: ../../Development/backend
+      dockerfile: Dockerfile
+    container_name: trustsense-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      thermal-inference:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_password}@postgres:5432/${POSTGRES_DB:-eculytics}
+      - THERMAL_AI_URL=http://thermal-inference:8000
+      - FRONTEND_URL=http://localhost:3000
+      - FABRIC_CHANNEL=bmschannel
+      - FABRIC_CHAINCODE=trustsense-provenance
+      - AWS_S3_BUCKET=trustsense-bms-evidence
+      - AWS_REGION=us-east-1
+
+  # 4. Frontend Intelligence Dashboard (Next.js 16)
+  frontend:
+    build:
+      context: ../../Development/frontend
+      dockerfile: Dockerfile
+    container_name: trustsense-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+
+volumes:
+  postgres_data:
