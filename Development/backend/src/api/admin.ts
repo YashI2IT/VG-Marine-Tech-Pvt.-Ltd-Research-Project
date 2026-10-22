@@ -35,7 +35,67 @@ router.get("/metrics", (req: Request, res: Response) => {
   });
 });
 
-// 2. GET /api/admin/users - List users from PostgreSQL
+
+// 2. GET /api/admin/stats - Aggregated dashboard stats for Admin Hub page
+router.get("/stats", async (req: Request, res: Response) => {
+  try {
+    // Fetch real user counts from PostgreSQL
+    const allUsers = await db.select({
+      role: schema.users.role,
+      status: schema.users.status,
+      createdAt: schema.users.createdAt,
+    }).from(schema.users);
+
+    const totalUsers = allUsers.length;
+    const activeUsers = allUsers.filter((u: any) => u.status === "active").length;
+    const today = new Date();
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const newThisWeek = allUsers.filter((u: any) => new Date(u.createdAt) >= weekAgo).length;
+
+    const roles = {
+      admin: allUsers.filter((u: any) => u.role === "admin").length,
+      operator: allUsers.filter((u: any) => u.role === "operator").length,
+      user: allUsers.filter((u: any) => u.role === "user").length,
+      viewer: allUsers.filter((u: any) => u.role === "viewer").length,
+    };
+
+    res.json({
+      userPool: {
+        totalUsers,
+        activeToday: activeUsers,
+        newThisWeek,
+        roles,
+      },
+      traffic: {
+        totalRequestsToday: 184520,
+        activeSessions: 42,
+        avgLatencyMs: 22.8,
+        telemetryThroughputMBs: 18.4,
+        virtualSensorRunsToday: 1240,
+        errorRate: "0.01%",
+      },
+      maintenance: {
+        activeWorkOrders: 3,
+        urgentTickets: 1,
+        scheduledCalibrations: 2,
+        systemHealth: "99.98%",
+      },
+      billing: {
+        plan: "Enterprise Fleet Guardian",
+        monthlyRecurringRevenue: 2490,
+        apiCreditsUsed: 84200,
+        apiCreditsTotal: 100000,
+        blockchainTxCount: 1850,
+        nextInvoiceDate: "2026-11-01",
+      },
+    });
+  } catch (err) {
+    console.error("Error fetching admin stats from PostgreSQL:", err);
+    res.status(500).json({ error: "Failed to load admin stats from database" });
+  }
+});
+
+// 3. GET /api/admin/users - List users from PostgreSQL
 router.get("/users", async (req: Request, res: Response) => {
   try {
     const userRecords = await db
@@ -50,14 +110,14 @@ router.get("/users", async (req: Request, res: Response) => {
       .from(schema.users)
       .orderBy(desc(schema.users.id));
 
-    res.json(userRecords);
+    res.json({ users: userRecords, total: userRecords.length });
   } catch (err) {
     console.error("Error fetching users from PostgreSQL:", err);
     res.status(500).json({ error: "Failed to query users from database" });
   }
 });
 
-// 3. POST /api/admin/users - Create new user in PostgreSQL pool
+// 4. POST /api/admin/users - Create new user in PostgreSQL pool
 router.post("/users", async (req: Request, res: Response) => {
   const parsed = createUserSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -109,7 +169,7 @@ router.post("/users", async (req: Request, res: Response) => {
   }
 });
 
-// 4. PATCH /api/admin/users/:id - Update user role or status in PostgreSQL
+// 5. PATCH /api/admin/users/:id - Update user role or status in PostgreSQL
 router.patch("/users/:id", async (req: Request, res: Response) => {
   const userId = parseInt(req.params.id as string, 10);
   const { role, status, name } = req.body;
@@ -154,7 +214,7 @@ router.patch("/users/:id", async (req: Request, res: Response) => {
   }
 });
 
-// 5. DELETE /api/admin/users/:id - Delete user from PostgreSQL pool
+// 6. DELETE /api/admin/users/:id - Delete user from PostgreSQL pool
 router.delete("/users/:id", async (req: Request, res: Response) => {
   const userId = parseInt(req.params.id as string, 10);
 
@@ -175,7 +235,7 @@ router.delete("/users/:id", async (req: Request, res: Response) => {
   }
 });
 
-// 6. GET /api/admin/traffic - User activity and system traffic analytics
+// 7. GET /api/admin/traffic - User activity and system traffic analytics
 router.get("/traffic", (req: Request, res: Response) => {
   res.json({
     summary: {
@@ -213,7 +273,7 @@ router.get("/traffic", (req: Request, res: Response) => {
   });
 });
 
-// 7. GET /api/admin/maintenance - Platform & Fleet Maintenance
+// 8. GET /api/admin/maintenance - Platform & Fleet Maintenance
 router.get("/maintenance", (req: Request, res: Response) => {
   res.json({
     platformServices: [
@@ -236,7 +296,7 @@ router.get("/maintenance", (req: Request, res: Response) => {
   });
 });
 
-// 8. GET /api/admin/billing - Invoices, Tiers, and Blockchain Transactions
+// 9. GET /api/admin/billing - Invoices, Tiers, and Blockchain Transactions
 router.get("/billing", (req: Request, res: Response) => {
   res.json({
     subscription: {
