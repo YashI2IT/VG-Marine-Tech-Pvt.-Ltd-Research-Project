@@ -1,3 +1,4 @@
+const fs = require('fs');
 /**
  * TrustSense-BMS End-to-End Automated Pipeline Test Suite
  * 
@@ -25,8 +26,26 @@ try {
   Pool = require(path.resolve(__dirname, '../../Development/backend/node_modules/pg')).Pool;
 }
 
+const backendEnvPath = path.resolve(__dirname, '../../Development/backend/.env');
+if (fs.existsSync(backendEnvPath)) {
+  const envContent = fs.readFileSync(backendEnvPath, 'utf8');
+  for (const line of envContent.split('\n')) {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+      const [k, ...v] = trimmed.split('=');
+      if (!process.env[k.trim()]) {
+        process.env[k.trim()] = v.join('=').trim();
+      }
+    }
+  }
+}
+
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required for integration tests.');
+}
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgres://postgres:Ypb%40192576@localhost:5432/eculytics',
+  connectionString: process.env.DATABASE_URL,
 });
 
 function httpGet(urlStr) {

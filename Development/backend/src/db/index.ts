@@ -5,8 +5,10 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-const connectionString =
-  process.env.DATABASE_URL || "postgres://postgres:Ypb%40192576@localhost:5432/eculytics";
+if (!process.env.DATABASE_URL) {
+  throw new Error("[PostgreSQL] DATABASE_URL environment variable is missing.");
+}
+const connectionString = process.env.DATABASE_URL;
 
 export const pool = new Pool({
   connectionString,
