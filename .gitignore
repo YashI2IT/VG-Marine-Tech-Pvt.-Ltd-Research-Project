@@ -73,7 +73,6 @@ Documents/Docs.zip
 
 # Excluded from Git Tracking as requested
 Documents/
-models/
 new models/
 *.bat
 
