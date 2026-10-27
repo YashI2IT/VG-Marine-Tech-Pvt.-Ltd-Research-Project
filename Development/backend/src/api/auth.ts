@@ -5,7 +5,7 @@ import crypto from "crypto";
 import { eq } from "drizzle-orm";
 import { db } from "../db";
 import * as schema from "../db/schema";
-import { requireAuth, AuthenticatedRequest } from "../middleware/auth";
+import { requireAuth, AuthenticatedRequest, getJwtSecret } from "../middleware/auth";
 
 const router = Router();
 
@@ -70,6 +70,7 @@ router.post("/register", async (req: Request, res: Response) => {
     }
 
     // Insert new user into PostgreSQL
+    const isOnboardingComplete = role === "admin";
     const [newUser] = await db
       .insert(schema.users)
       .values({
@@ -78,8 +79,41 @@ router.post("/register", async (req: Request, res: Response) => {
         passwordHash: hashPassword(password),
         role: role || "user",
         status: "active",
+        onboardingCompleted: isOnboardingComplete,
       })
       .returning();
+
+    // If role is admin, assign to default platform tenant 1; otherwise create dedicated organization tenant
+    let tenantId = 1;
+    if (role === "admin") {
+      const [assignedTenant] = await db
+        .insert(schema.tenantUsers)
+        .values({
+          tenantId: 1,
+          userId: newUser.id,
+        })
+        .onConflictDoNothing()
+        .returning();
+      tenantId = assignedTenant?.tenantId || 1;
+    } else {
+      const orgName = name?.trim() ? `${name.trim()}'s Organization` : "New Organization";
+      const [newTenant] = await db
+        .insert(schema.tenants)
+        .values({
+          name: orgName,
+        })
+        .returning();
+      
+      await db
+        .insert(schema.tenantUsers)
+        .values({
+          tenantId: newTenant.id,
+          userId: newUser.id,
+        })
+        .onConflictDoNothing();
+      
+      tenantId = newTenant.id;
+    }
 
     // Issue JWT token and set authentication cookie
     const payload = {
@@ -87,9 +121,11 @@ router.post("/register", async (req: Request, res: Response) => {
       email: newUser.email,
       role: newUser.role,
       name: newUser.name || undefined,
+      tenantId,
+      onboardingCompleted: newUser.onboardingCompleted,
     };
 
-    const secret = process.env.JWT_SECRET || "supersecretkey_change_me_in_production";
+    const secret = getJwtSecret();
     const token = jwt.sign(payload, secret, { expiresIn: "1d" });
 
     res.cookie("token", token, {
@@ -102,6 +138,7 @@ router.post("/register", async (req: Request, res: Response) => {
     return res.status(201).json({
       message: "Registration successful",
       user: payload,
+      token,
     });
   } catch (err) {
     console.error("Registration error in PostgreSQL:", err);
@@ -130,8 +167,8 @@ router.post("/login", async (req: Request, res: Response) => {
       .where(eq(schema.users.email, normalizedEmail))
       .limit(1);
 
-    // Fallback seed if database is brand new and credentials match standard defaults
-    if (!user) {
+    // Fallback seed ONLY in non-production environments if credentials match standard defaults
+    if (!user && process.env.NODE_ENV !== "production") {
       if (normalizedEmail === "admin@eculytics.com" && password === "password123") {
         [user] = await db
           .insert(schema.users)
@@ -161,14 +198,26 @@ router.post("/login", async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
+    // Determine tenantId
+    const [tenantAssoc] = await db
+      .select()
+      .from(schema.tenantUsers)
+      .where(eq(schema.tenantUsers.userId, user.id))
+      .limit(1);
+
+    const tenantId = tenantAssoc?.tenantId || 1;
+    const onboardingCompleted = user.onboardingCompleted ?? (user.role === "admin");
+
     const payload = {
       id: user.id,
       email: user.email,
       role: user.role,
       name: user.name || undefined,
+      tenantId,
+      onboardingCompleted,
     };
 
-    const secret = process.env.JWT_SECRET || "supersecretkey_change_me_in_production";
+    const secret = getJwtSecret();
     const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
     const token = jwt.sign(payload, secret, { expiresIn: rememberMe ? "7d" : "1d" });
 
@@ -182,6 +231,7 @@ router.post("/login", async (req: Request, res: Response) => {
     return res.json({
       message: "Login successful",
       user: payload,
+      token,
     });
   } catch (err) {
     console.error("Login error in PostgreSQL:", err);
@@ -209,8 +259,44 @@ router.post("/forgot-password", (req: Request, res: Response) => {
 });
 
 // --- GET /me ---
-router.get("/me", requireAuth, (req: AuthenticatedRequest, res: Response) => {
-  res.json({ user: req.user });
+router.get("/me", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const [dbUser] = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, req.user.id))
+      .limit(1);
+
+    if (!dbUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const [tenantAssoc] = await db
+      .select()
+      .from(schema.tenantUsers)
+      .where(eq(schema.tenantUsers.userId, dbUser.id))
+      .limit(1);
+
+    const tenantId = tenantAssoc?.tenantId || req.user.tenantId || 1;
+    const onboardingCompleted = dbUser.onboardingCompleted ?? (dbUser.role === "admin");
+
+    res.json({
+      user: {
+        id: dbUser.id,
+        email: dbUser.email,
+        role: dbUser.role,
+        name: dbUser.name,
+        tenantId,
+        onboardingCompleted,
+      },
+    });
+  } catch (err) {
+    console.error("Error retrieving user session:", err);
+    res.status(500).json({ error: "Failed to load session profile" });
+  }
 });
 
 export default router;

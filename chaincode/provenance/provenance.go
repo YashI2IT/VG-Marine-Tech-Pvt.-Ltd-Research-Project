@@ -15,8 +15,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
+	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
@@ -244,11 +246,29 @@ func (s *SmartContract) GetBatteryPassport(ctx contractapi.TransactionContextInt
 func main() {
 	chaincode, err := contractapi.NewChaincode(&SmartContract{})
 	if err != nil {
-		fmt.Printf("Error creating TrustSense provenance chaincode: %s", err.Error())
+		fmt.Printf("Error creating TrustSense provenance chaincode: %s\n", err.Error())
 		return
 	}
 
-	if err := chaincode.Start(); err != nil {
-		fmt.Printf("Error starting chaincode: %s", err.Error())
+	serverAddress := os.Getenv("CHAINCODE_SERVER_ADDRESS")
+	ccid := os.Getenv("CHAINCODE_ID")
+
+	if serverAddress != "" {
+		fmt.Printf("Starting Chaincode Server at %s for CCID: %s\n", serverAddress, ccid)
+		server := &shim.ChaincodeServer{
+			CCID:    ccid,
+			Address: serverAddress,
+			CC:      chaincode,
+			TLSProps: shim.TLSProperties{
+				Disabled: true,
+			},
+		}
+		if err := server.Start(); err != nil {
+			fmt.Printf("Error starting chaincode server: %s\n", err.Error())
+		}
+	} else {
+		if err := chaincode.Start(); err != nil {
+			fmt.Printf("Error starting chaincode: %s\n", err.Error())
+		}
 	}
 }

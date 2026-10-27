@@ -75,8 +75,15 @@ interface MerkleBatch {
 }
 
 export default function VirtualSensorPage() {
-  const [activeTab, setActiveTab] = useState<"live" | "offline">("live");
+  const [activeTab, setActiveTab] = useState<"device" | "replay" | "offline">("device");
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [sseStatus, setSseStatus] = useState<"connecting" | "open" | "retrying">("connecting");
+  const [acquisition, setAcquisition] = useState<any>(null);
+  const [pipeline, setPipeline] = useState<any>(null);
+  const [ledgerMode, setLedgerMode] = useState<string>("LOCAL_DEV_NETWORK");
+  const [storageProvider, setStorageProvider] = useState<string>("LOCAL_S3_COMPATIBLE");
+  const [lastLiveAt, setLastLiveAt] = useState<string | null>(null);
+  const [ingestError, setIngestError] = useState<string | null>(null);
 
   // --- Live Simulation State ---
   const [simState, setSimState] = useState<any>({
@@ -101,6 +108,9 @@ export default function VirtualSensorPage() {
 
   const [availableCycles, setAvailableCycles] = useState<any[]>([]);
   const [chartData, setChartData] = useState<TelemetryPoint[]>([]);
+  const [deviceChart, setDeviceChart] = useState<TelemetryPoint[]>([]);
+  const [latestDeviceSample, setLatestDeviceSample] = useState<any>(null);
+  const [latestDeviceTrust, setLatestDeviceTrust] = useState<any>(null);
   const [latestSample, setLatestSample] = useState<any>(null);
   const [latestTrust, setLatestTrust] = useState<any>(null);
   const [batches, setBatches] = useState<MerkleBatch[]>([]);
@@ -145,6 +155,10 @@ export default function VirtualSensorPage() {
       if (res.data?.simulation) {
         setSimState(res.data.simulation);
       }
+      if (res.data?.pipelineState) setPipeline(res.data.pipelineState);
+      if (res.data?.acquisition) setAcquisition(res.data.acquisition);
+      if (res.data?.ledger?.mode) setLedgerMode(res.data.ledger.mode);
+      if (res.data?.storage?.provider) setStorageProvider(res.data.storage.provider);
     } catch (e) {
       console.warn("Could not fetch status:", e);
     }
@@ -184,21 +198,26 @@ export default function VirtualSensorPage() {
   };
 
   const setupSse = () => {
-    const sseUrl = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/trustsense/simulation/stream`;
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+    }
+    const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+    const apiOrigin = rawApiUrl.replace(/\/api\/?$/, "");
+    const sseUrl = `${apiOrigin}/api/trustsense/simulation/stream`;
     const es = new EventSource(sseUrl);
     eventSourceRef.current = es;
+    setSseStatus("connecting");
+
+    es.onopen = () => setSseStatus("open");
 
     es.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        if (data.pipeline) setPipeline(data.pipeline);
 
         if (data.type === "INITIAL_STATE") {
-          setSimState(data.state);
-        } else if (data.type === "LIVE_TELEMETRY") {
-          setLatestSample(data.sample);
-          setLatestTrust(data.trustResult);
           if (data.state) setSimState(data.state);
-
+        } else if (data.type === "LIVE_TELEMETRY") {
           const newPoint: TelemetryPoint = {
             time: new Date().toLocaleTimeString(),
             sampleTime: data.sample.sampleTime || 0,
@@ -213,24 +232,77 @@ export default function VirtualSensorPage() {
             error: data.prediction?.residual_degC ?? null,
           };
 
-          setChartData((prev) => {
-            const next = [...prev, newPoint];
-            return next.length > 50 ? next.slice(next.length - 50) : next;
-          });
+          if (data.dataSource === "LIVE_DEVICE") {
+            setLastLiveAt(new Date().toISOString());
+            setLatestDeviceSample(data.sample);
+            setLatestDeviceTrust(data.trustResult);
+            setDeviceChart((prev) => {
+              const next = [...prev, newPoint];
+              return next.length > 50 ? next.slice(next.length - 50) : next;
+            });
+            setAcquisition((prev: any) => ({
+              ...(prev || {}),
+              connected: true,
+              waitingForTelemetry: false,
+              deviceId: data.deviceId,
+              lastMessageAt: new Date().toISOString(),
+            }));
+          } else {
+            setLatestSample(data.sample);
+            setLatestTrust(data.trustResult);
+            setChartData((prev) => {
+              const next = [...prev, newPoint];
+              return next.length > 50 ? next.slice(next.length - 50) : next;
+            });
+            setSimState((prev: any) => ({
+              ...prev,
+              status: "RUNNING",
+              currentSampleIndex: data.recordIndex ?? (prev?.currentSampleIndex || 0) + 1,
+              latestPredictedTemp: data.prediction?.predicted_temp_degC ?? prev?.latestPredictedTemp ?? null,
+              latestReferenceTemp: data.prediction?.reference_temp_degC ?? prev?.latestReferenceTemp ?? null,
+              latestResidual: data.prediction?.residual_degC ?? prev?.latestResidual ?? null,
+              runningMae: data.runningMae ?? prev?.runningMae ?? null,
+              latestRecordHash: data.recordHash ?? prev?.latestRecordHash ?? null,
+              latestMerkleRoot: data.latestMerkleRoot ?? prev?.latestMerkleRoot ?? null,
+              latestTxId: data.latestTxId ?? prev?.latestTxId ?? null,
+              latestTrustDecision: data.trustResult?.decision ?? prev?.latestTrustDecision ?? "SAFE",
+              windowLength: data.pipeline?.windowLength ?? prev?.windowLength ?? 0,
+            }));
+          }
         } else if (data.type === "TELEMETRY_BLOCKED") {
-          setLatestTrust(data.trustResult);
+          const trustSetter = data.dataSource === "LIVE_DEVICE" ? setLatestDeviceTrust : setLatestTrust;
+          trustSetter(data.trustResult);
+          if (data.dataSource === "LIVE_DEVICE") {
+            setLastLiveAt(new Date().toISOString());
+            setLatestDeviceSample(data.sample);
+          }
           setQuarantined((prev) => [
             {
               id: data.recordId,
               payload: data.sample,
               violations: data.trustResult?.violations || [],
               time: new Date().toLocaleTimeString(),
+              source: data.dataSource || "DATASET_REPLAY",
             },
             ...prev.slice(0, 19),
           ]);
+        } else if (data.type === "TELEMETRY_REJECTED") {
+          setIngestError((data.reasons || []).join("; ") || data.code);
+        } else if (data.type === "WINDOW_RESET") {
+          if (data.pipeline) setPipeline(data.pipeline);
+        } else if (data.type === "DEVICE_DISCONNECTED") {
+          setAcquisition((prev: any) => ({
+            ...(prev || {}),
+            connected: false,
+            waitingForTelemetry: true,
+          }));
+          if (data.pipeline) setPipeline(data.pipeline);
         } else if (data.type === "BATCH_ANCHORED") {
           loadBatches();
           loadPassport();
+        } else if (data.type === "INFERENCE_FAILED") {
+          setIngestError(data.error || "Inference failed");
+          if (data.pipeline) setPipeline(data.pipeline);
         }
       } catch (err) {
         console.error("SSE parse error:", err);
@@ -238,8 +310,15 @@ export default function VirtualSensorPage() {
     };
 
     es.onerror = () => {
-      // Reconnection handled automatically by browser EventSource
+      setSseStatus("retrying");
     };
+  };
+
+  const handleSwitchToReplay = async () => {
+    setActiveTab("replay");
+    if (simState.status !== "RUNNING") {
+      await handleControl("start");
+    }
   };
 
   // --- Simulation Controls ---
@@ -315,9 +394,7 @@ export default function VirtualSensorPage() {
       const formData = new FormData();
       formData.append("dataset", file);
 
-      const res = await api.post("/virtual-sensor/predict", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await api.post("/virtual-sensor/predict", formData);
 
       setOfflineResult(res.data);
     } catch (err: any) {
@@ -337,9 +414,12 @@ export default function VirtualSensorPage() {
               <Zap className="w-3.5 h-3.5 text-indigo-600" />
               TrustSense-BMS Intelligence
             </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              Hyperledger Fabric Anchored
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-50 text-slate-700 border border-slate-200">
+              <ShieldCheck className="w-3.5 h-3.5 text-slate-600" />
+              Ledger: {ledgerMode}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-50 text-slate-700 border border-slate-200">
+              Evidence: {storageProvider}
             </span>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono bg-slate-100 text-slate-700">
               CNN-LSTM (v1.0.0)
@@ -356,15 +436,26 @@ export default function VirtualSensorPage() {
         {/* Tab Selector */}
         <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 self-start md:self-auto">
           <button
-            onClick={() => setActiveTab("live")}
+            onClick={() => setActiveTab("device")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${
-              activeTab === "live"
+              activeTab === "device"
                 ? "bg-white text-indigo-600 shadow-sm"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
             <Activity className="w-4 h-4" />
-            Live Simulation & Trust
+            Live Device
+          </button>
+          <button
+            onClick={() => setActiveTab("replay")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${
+              activeTab === "replay"
+                ? "bg-white text-indigo-600 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Layers className="w-4 h-4" />
+            Dataset Replay
           </button>
           <button
             onClick={() => setActiveTab("offline")}
@@ -380,8 +471,27 @@ export default function VirtualSensorPage() {
         </div>
       </div>
 
-      {activeTab === "live" ? (
+      {activeTab === "device" ? (
+        <LiveDevicePanel
+          sseStatus={sseStatus}
+          acquisition={acquisition}
+          pipeline={pipeline}
+          sample={latestDeviceSample}
+          trust={latestDeviceTrust}
+          chartData={deviceChart}
+          lastLiveAt={lastLiveAt}
+          ingestError={ingestError}
+          onSwitchReplay={handleSwitchToReplay}
+          onReconnect={setupSse}
+        />
+      ) : activeTab === "replay" ? (
         <div className="space-y-6">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            Dataset replay is <strong>simulation</strong>, not physical battery acquisition.
+            {simState.datasetKind === "SYNTHETIC_FALLBACK"
+              ? " The inference service did not load a Panasonic .mat cycle; values are a synthetic drive-cycle fallback."
+              : " Samples come from a Panasonic 18650PF drive-cycle file."}
+          </div>
           {/* 1. SIMULATION CONTROL PANEL */}
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -427,7 +537,7 @@ export default function VirtualSensorPage() {
                     }`}
                   />
                   {simState.status === "RUNNING"
-                    ? "STREAMING LIVE"
+                    ? "REPLAYING DATASET"
                     : simState.status}
                 </span>
               </div>
@@ -516,7 +626,7 @@ export default function VirtualSensorPage() {
           </div>
 
           {/* 2. KPI METRICS ROW */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
             {/* Predicted Temp */}
             <div className="bg-white rounded-xl border border-indigo-100 p-3.5 shadow-xs relative overflow-hidden">
               <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-50 rounded-bl-full -z-0" />
@@ -738,7 +848,7 @@ export default function VirtualSensorPage() {
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-2">
                     <Activity className="w-8 h-8 text-slate-300 animate-pulse" />
-                    <p className="text-sm font-medium">Click "Start Simulation" to stream live predictions</p>
+                    <p className="text-sm font-medium">Start dataset replay to stream simulated predictions</p>
                   </div>
                 )}
               </div>
@@ -1161,6 +1271,241 @@ export default function VirtualSensorPage() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function freshnessLabel(lastAt: string | null): string {
+  if (!lastAt) return "no packets yet";
+  const age = Date.now() - Date.parse(lastAt);
+  if (Number.isNaN(age)) return "unknown";
+  if (age < 2000) return `${age} ms ago`;
+  return `${(age / 1000).toFixed(1)} s ago`;
+}
+
+function LiveDevicePanel(props: {
+  sseStatus: string;
+  acquisition: any;
+  pipeline: any;
+  sample: any;
+  trust: any;
+  chartData: TelemetryPoint[];
+  lastLiveAt: string | null;
+  ingestError: string | null;
+  onSwitchReplay: () => void;
+  onReconnect: () => void;
+}) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const connected = !!props.acquisition?.connected;
+  const waiting = !connected;
+  const live = props.pipeline?.activeSource === "LIVE_DEVICE";
+  const p = live ? props.pipeline || {} : props.pipeline || {};
+
+  let statusBadge = {
+    label: "WAITING FOR BATTERY TELEMETRY",
+    bg: "bg-slate-100 text-slate-700 border-slate-200",
+    dot: "bg-slate-400",
+  };
+  if (props.sseStatus === "connecting") {
+    statusBadge = {
+      label: "CONNECTING TO GATEWAY...",
+      bg: "bg-blue-50 text-blue-700 border-blue-200",
+      dot: "bg-blue-500 animate-ping",
+    };
+  } else if (props.sseStatus === "retrying") {
+    statusBadge = {
+      label: "STREAM DISCONNECTED",
+      bg: "bg-rose-50 text-rose-700 border-rose-200",
+      dot: "bg-rose-500",
+    };
+  } else if (connected) {
+    if (p.windowLength && p.windowLength >= 60) {
+      statusBadge = {
+        label: "ACTIVE INFERENCE (60/60 WINDOW)",
+        bg: "bg-indigo-50 text-indigo-700 border-indigo-200",
+        dot: "bg-indigo-600 animate-pulse",
+      };
+    } else {
+      statusBadge = {
+        label: `RECEIVING TELEMETRY (${p.windowLength || 0}/60 BUFFERING)`,
+        bg: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        dot: "bg-emerald-500 animate-pulse",
+      };
+    }
+  } else if (props.acquisition?.lastMessageAt && !connected) {
+    statusBadge = {
+      label: "TELEMETRY STALE / TIMEOUT",
+      bg: "bg-amber-50 text-amber-800 border-amber-200",
+      dot: "bg-amber-500",
+    };
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-bold text-slate-900">Physical battery telemetry</h2>
+            <p className="text-xs text-slate-500">
+              HTTP ingest at <code>/api/trustsense/telemetry/ingest</code>. MQTT and serial activate only when configured.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${statusBadge.bg}`}>
+              <span className={`w-2 h-2 rounded-full ${statusBadge.dot}`} />
+              {statusBadge.label}
+            </span>
+            <span className="text-[11px] font-mono text-slate-500">SSE {props.sseStatus}</span>
+            {props.sseStatus === "retrying" && (
+              <button type="button" onClick={props.onReconnect} className="text-xs font-semibold text-indigo-600 hover:underline">
+                Reconnect
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+          <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+            <div className="text-slate-400">Device ID</div>
+            <div className="font-mono font-semibold text-slate-800 truncate">{props.acquisition?.deviceId || "—"}</div>
+          </div>
+          <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+            <div className="text-slate-400">Last packet</div>
+            <div className="font-semibold text-slate-800">{freshnessLabel(props.lastLiveAt || props.acquisition?.lastMessageAt)}</div>
+          </div>
+          <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+            <div className="text-slate-400">Admitted samples</div>
+            <div className="font-semibold text-slate-800">{live ? p.processedSamples ?? 0 : p.processedSamples ?? 0}</div>
+          </div>
+          <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+            <div className="text-slate-400">60-step window</div>
+            <div className="font-semibold text-slate-800">
+              {p.windowLength || 0}/{p.sequenceLength || 60}
+            </div>
+          </div>
+          <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+            <div className="text-slate-400">Inference latency</div>
+            <div className="font-semibold text-slate-800">
+              {p.latestInferenceLatencyMs != null ? `${p.latestInferenceLatencyMs} ms` : "—"}
+            </div>
+          </div>
+        </div>
+
+        {connected ? (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="font-semibold text-emerald-900 flex items-center gap-1.5">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
+                </span>
+                Active Physical Telemetry Stream — Receiving live BMS packets
+              </span>
+              <span className="text-emerald-700 font-medium">
+                Window: <strong>{p.windowLength || 0}/60</strong> samples ({p.windowLength >= 60 ? "CNN-LSTM Inference Active" : `Buffering: ${60 - (p.windowLength || 0)} samples remaining`})
+              </span>
+            </div>
+            <div className="w-full bg-emerald-100 rounded-full h-2 overflow-hidden">
+              <div
+                className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${Math.min(100, ((p.windowLength || 0) / 60) * 100)}%` }}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center space-y-3">
+            <p className="text-sm font-semibold text-slate-700">Waiting for battery telemetry</p>
+            <p className="text-xs text-slate-500">
+              No physical BMS/gateway is connected. Send JSON to the ingest API, or switch to dataset replay (simulation).
+            </p>
+            <button
+              type="button"
+              onClick={props.onSwitchReplay}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm transition cursor-pointer"
+            >
+              Switch to dataset replay
+            </button>
+          </div>
+        )}
+
+        {props.ingestError && (
+          <p className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">{props.ingestError}</p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+        {[
+          ["AI predicted T", live ? props.pipeline?.latestPredictedTemp : props.pipeline?.latestPredictedTemp, "°C"],
+          ["Reference T", live ? props.pipeline?.latestReferenceTemp : props.pipeline?.latestReferenceTemp, "°C"],
+          ["Error ΔT", live ? props.pipeline?.latestResidual : props.pipeline?.latestResidual, "°C"],
+          ["Voltage", props.sample?.voltage_v, "V"],
+          ["Current", props.sample?.current_a, "A"],
+          ["Ambient T", props.sample?.chamber_temp_degC, "°C"],
+          ["Ah", props.sample?.ah, "Ah"],
+          ["Power", props.sample?.power_w, "W"],
+        ].map(([label, value, unit]) => (
+          <div key={String(label)} className="bg-white rounded-xl border border-slate-200 p-3.5 shadow-xs">
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">{label}</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl font-bold text-slate-800">
+                {typeof value === "number" ? value.toFixed(2) : "—"}
+              </span>
+              <span className="text-xs text-slate-500">{unit}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5 h-80 shadow-xs">
+          {props.chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={props.chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="time" stroke="#94a3b8" fontSize={11} />
+                <YAxis stroke="#94a3b8" fontSize={11} unit="°C" />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="predictedTemp" name="Predicted °C" stroke="#6366f1" dot={false} isAnimationActive={false} />
+                <Line type="monotone" dataKey="referenceTemp" name="Reference °C" stroke="#10b981" strokeDasharray="4 4" dot={false} isAnimationActive={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex items-center justify-center text-sm text-slate-400">No live device samples yet</div>
+          )}
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 text-sm shadow-xs">
+          <h3 className="font-bold text-slate-900">Trust & persistence</h3>
+          <p>
+            Decision:{" "}
+            <strong
+              className={
+                (props.trust?.decision || p.latestTrustDecision) === "BLOCK"
+                  ? "text-rose-600 font-bold"
+                  : (props.trust?.decision || p.latestTrustDecision) === "SAFE"
+                  ? "text-emerald-600 font-bold"
+                  : "text-slate-800"
+              }
+            >
+              {props.trust?.decision || p.latestTrustDecision || "—"}
+            </strong>
+          </p>
+          <p className="text-xs text-slate-500">
+            {props.trust?.violations?.length
+              ? props.trust.violations.join("; ")
+              : props.trust?.reasons?.[0] || "No verdict yet"}
+          </p>
+          <p className="text-xs">Persistence: {p.persistenceStatus || "idle"}</p>
+          <p className="text-xs">Evidence: {p.evidenceStatus || "idle"} (local filesystem, not AWS S3)</p>
+          <p className="text-xs">Ledger: {p.ledgerStatus || "idle"} (PostgreSQL adapter, not a live Fabric peer)</p>
+          <p className="text-xs font-mono break-all">Hash: {p.latestRecordHash || "—"}</p>
+          {p.lastInferenceError && <p className="text-xs text-rose-600">{p.lastInferenceError}</p>}
+        </div>
+      </div>
     </div>
   );
 }

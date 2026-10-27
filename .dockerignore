@@ -1,0 +1,42 @@
+# Version Control & Local IDE
+.git
+.gitignore
+.vscode
+.idea
+
+# Dependencies & Build Output
+node_modules
+**/node_modules
+.next
+**/.next
+dist
+**/dist
+build
+out
+.turbo
+*.tsbuildinfo
+
+# Python Cache & Testing
+__pycache__
+**/*.pyc
+.pytest_cache
+coverage
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Datasets, Archives & Uploads
+Documents/
+Documents/Dataset/
+*.zip
+*.tar.gz
+*.mat
+wykht8y7tg-1
+**/wykht8y7tg-1
+*.ipynb
+**/*.ipynb
+uploads/
+**/uploads/
+*.log

@@ -6,11 +6,12 @@
  * 2. Type & Numeric Validity (no NaN, Infinity, nulls)
  * 3. Freshness & Monotonicity (replay detection, duplicate timestamps)
  * 4. Battery Physics Plausibility:
- *    - Voltage bounds [2.50V, 4.35V] for Panasonic NCR18650PF
- *    - Current bounds [-15.0A, 10.0A]
- *    - Ambient temperature bounds [-30.0°C, 65.0°C]
- *    - Power consistency: |P - (V * I)| < 0.15 W
- *    - Rate-of-change physics limits (|dV/dt| < 1.0 V/s, |dI/dt| < 30.0 A/s)
+ *    - Voltage bounds [2.45V, 4.35V] for Panasonic NCR18650PF
+ *    - Current bounds [-16.0A, 12.0A]
+ *    - Ambient temperature bounds [-35.0°C, 70.0°C]
+ *    - Power consistency: |P - (V * I)| <= 0.20 W
+ *    - Rate-of-change physics limits (|dV/dt| <= 1.2 V/s, |dI/dt| <= 35.0 A/s)
+ *      Rate violations are BLOCK (quarantined, excluded from the 60-step buffer).
  * 
  * Decision outputs:
  * - SAFE: Passed all checks. Admitted to 60-step inference sequence buffer.
@@ -186,14 +187,14 @@ export class TrustValidator {
 
         if (dVRate > this.config.maxDVoltsPerSec) {
           violations.push(`RAPID_VOLTAGE_SPIKE: dV/dt = ${dVRate.toFixed(2)} V/s exceeds limit ${this.config.maxDVoltsPerSec} V/s`);
-          isSuspicious = true;
+          isBlocked = true;
         } else {
           passedChecks.push("DV_DT_STABLE");
         }
 
         if (dIRate > this.config.maxDAmpsPerSec) {
           violations.push(`CURRENT_SURGE_DETECTED: dI/dt = ${dIRate.toFixed(2)} A/s exceeds limit ${this.config.maxDAmpsPerSec} A/s`);
-          isSuspicious = true;
+          isBlocked = true;
         } else {
           passedChecks.push("DI_DT_STABLE");
         }
@@ -218,8 +219,9 @@ export class TrustValidator {
       reasons.push("All physical bounds, schema integrity, and freshness checks passed successfully.");
     }
 
-    // Update last sample only if record had reasonable structure
-    if (typeof v === "number" && typeof i === "number") {
+    // Keep rate-of-change history on admitted samples only. Updating on BLOCK
+    // would make the next valid sample look like a spike against the rejected one.
+    if (!isBlocked && typeof v === "number" && typeof i === "number") {
       this.lastSample = { ...sample };
     }
 

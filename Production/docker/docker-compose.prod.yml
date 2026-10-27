@@ -1,35 +1,161 @@
 version: '3.8'
 
+# =====================================================================
+# ECUlytics & TrustSense-BMS: Production Orchestration Topology
+# Classification: High-Availability Production Release Candidate
+# Security:
+#   - Only Nginx reverse proxy binds to public ingress ports (80, 443).
+#   - Database, Virtual Sensor, Backend API, and Frontend run unprivileged
+#     on internal bridge network (eculytics-prod-net). Zero public exposure.
+#   - PostgreSQL volume persisted under eculytics_prod_postgres_data.
+#   - Workload IAM role auto-inherited on AWS (IMDSv2) with zero hardcoded keys.
+# =====================================================================
+
 services:
+  # -------------------------------------------------------------------
+  # 1. Reverse Proxy & Edge TLS Termination (Nginx)
+  # -------------------------------------------------------------------
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: eculytics-nginx-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/ssl/certs:/etc/ssl/certs:ro
+      - /etc/ssl/private:/etc/ssl/private:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - eculytics-prod-net
+
+  # -------------------------------------------------------------------
+  # 2. Production PostgreSQL Database (PostgreSQL 16)
+  # -------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: eculytics-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-eculytics_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_prod_password}
+      POSTGRES_DB: ${POSTGRES_DB:-eculytics_prod}
+    volumes:
+      - eculytics_prod_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-eculytics_admin} -d ${POSTGRES_DB:-eculytics_prod}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eculytics-prod-net
+
+  # -------------------------------------------------------------------
+  # 3. Thermal AI Virtual Sensor (FastAPI + TensorFlow 2.18 CPU)
+  # -------------------------------------------------------------------
+  thermal-ai:
+    build:
+      context: ../..
+      dockerfile: Production/docker/Dockerfile.inference
+    image: trustsense-thermal-ai:production
+    container_name: eculytics-thermal-ai-prod
+    restart: unless-stopped
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - TF_ENABLE_ONEDNN_OPTS=0
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eculytics-prod-net
+
+  # -------------------------------------------------------------------
+  # 4. Backend API Gateway & Provenance Engine (Node.js 20 Express)
+  # -------------------------------------------------------------------
   backend:
     build:
-      context: ../../
+      context: ../..
       dockerfile: Production/docker/Dockerfile.backend
+    image: trustsense-backend:production
     container_name: eculytics-backend-prod
-    restart: always
+    restart: unless-stopped
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - FRONTEND_URL=http://localhost:3000
-    ports:
-      - "3001:3001"
+      - DATABASE_URL=postgres://${POSTGRES_USER:-eculytics_admin}:${POSTGRES_PASSWORD:-secure_prod_password}@postgres:5432/${POSTGRES_DB:-eculytics_prod}
+      - THERMAL_AI_URL=http://thermal-ai:8000
+      - FRONTEND_URL=${FRONTEND_URL:-https://eculytics.vgmarine.com}
+      - JWT_SECRET=${JWT_SECRET}
+      - STORAGE_MODE=s3
+      - AWS_REGION=ap-south-1
+      - AWS_S3_BUCKET=trustsense-evidence-218733195047-ap-south-1
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+      - RAZORPAY_WEBHOOK_SECRET=${RAZORPAY_WEBHOOK_SECRET}
+      - FABRIC_ENABLED=${FABRIC_ENABLED:-true}
+      - FABRIC_MSP_ID=${FABRIC_MSP_ID:-Org1MSP}
+      - FABRIC_CHANNEL=${FABRIC_CHANNEL:-bmschannel}
+      - FABRIC_CHAINCODE=${FABRIC_CHAINCODE:-trustsense-provenance}
+      - FABRIC_PEER_ENDPOINT=${FABRIC_PEER_ENDPOINT:-peer0.org1.example.com:7051}
+      - FABRIC_PEER_HOST_OVERRIDE=peer0.org1.example.com
+      - FABRIC_TLS_CERT_PATH=/etc/fabric/crypto/ca.crt
+      - FABRIC_USER_CERT_PATH=/etc/fabric/crypto/user.crt
+      - FABRIC_USER_KEY_PATH=/etc/fabric/crypto/user.key
+      - FABRIC_CERT_PATH=/etc/fabric/crypto/user.crt
+      - FABRIC_KEY_PATH=/etc/fabric/crypto/user.key
     volumes:
-      - ../../models:/app/models:ro
-      - backend-data:/app/data
+      - backend-uploads:/app/uploads
+      - ../fabric/test-crypto:/etc/fabric/crypto:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      thermal-ai:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e 'require(\"http\").get(\"http://127.0.0.1:3001/health\", (r) => { process.exit(r.statusCode === 200 ? 0 : 1); }).on(\"error\", () => process.exit(1));'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eculytics-prod-net
 
+  # -------------------------------------------------------------------
+  # 5. Frontend Web UI (Next.js 16.4.3 Standalone)
+  # -------------------------------------------------------------------
   frontend:
     build:
-      context: ../../
+      context: ../..
       dockerfile: Production/docker/Dockerfile.frontend
+    image: trustsense-frontend:production
     container_name: eculytics-frontend-prod
-    restart: always
+    restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://localhost:3001/api
-    ports:
-      - "3000:3000"
+      - PORT=3000
+      - NEXT_TELEMETRY_DISABLED=1
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://eculytics.vgmarine.com/api}
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e 'require(\"http\").get(\"http://127.0.0.1:3000/\", (r) => { process.exit(r.statusCode === 200 ? 0 : 1); }).on(\"error\", () => process.exit(1));'"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eculytics-prod-net
+
+networks:
+  eculytics-prod-net:
+    driver: bridge
 
 volumes:
-  backend-data:
+  eculytics_prod_postgres_data:
+  backend-uploads:

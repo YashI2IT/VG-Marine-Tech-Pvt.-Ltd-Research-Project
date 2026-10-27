@@ -14,14 +14,12 @@ import { useEffect, useState } from "react";
 export default function ProfilePage() {
   const router = useRouter();
   const [email, setEmail] = useState(currentUser.email);
-  const [role, setRole] = useState(currentUser.role);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     getSession()
       .then((u) => {
         setEmail(u.email);
-        setRole(u.role);
       })
       .catch(() => undefined);
   }, []);
@@ -42,11 +40,7 @@ export default function ProfilePage() {
             <p className="text-sm text-slate-500">{email}</p>
           </div>
         </div>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <div>
-            <SectionHeader title="Role" />
-            <p className="capitalize text-sm">{role}</p>
-          </div>
+        <div className="mt-6">
           <div>
             <SectionHeader title="Tenant" />
             <p className="text-sm">Global Fleet Ops</p>

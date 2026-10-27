@@ -9,10 +9,12 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { DemoBanner, EmptyState } from "@/components/ui/States";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { formatTime } from "@/lib/format";
-import { listReports } from "@/services/reports";
+import { listReports, generateReport } from "@/services/reports";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import type { ReportStatus } from "@/types/domain";
+import { Button } from "@/components/ui/Button";
+import { FilePlus2, RefreshCw } from "lucide-react";
 
 function tone(status: ReportStatus) {
   if (status === "ready") return "healthy" as const;
@@ -23,7 +25,25 @@ function tone(status: ReportStatus) {
 export default function ReportsPage() {
   const { data, loading, error, reload } = useAsyncData(() => listReports(), []);
   const [q, setQ] = useState("");
+  const [generating, setGenerating] = useState(false);
   const router = useRouter();
+
+  async function handleGenerate() {
+    try {
+      setGenerating(true);
+      await generateReport({
+        type: "Fleet thermal daily",
+        scope: "Global Fleet Ops",
+        timeWindowHours: 24,
+      });
+      await reload();
+    } catch (err) {
+      console.error("Failed to generate report:", err);
+    } finally {
+      setGenerating(false);
+    }
+  }
+
   const rows = useMemo(
     () => (data ?? []).filter((r) => `${r.id} ${r.type} ${r.scope}`.toLowerCase().includes(q.toLowerCase())),
     [data, q]
@@ -33,8 +53,20 @@ export default function ReportsPage() {
     <div>
       <PageHeader
         title="Reports"
-        description="Thermal intelligence report center. PDF generation is not implemented."
+        description="Thermal intelligence & provenance report center backed by real telemetry records."
         crumbs={[{ href: "/dashboard", label: "Home" }, { label: "Reports" }]}
+        actions={
+          <Button
+            type="button"
+            variant="primary"
+            onClick={handleGenerate}
+            disabled={generating}
+            className="flex items-center gap-1.5"
+          >
+            {generating ? <RefreshCw className="h-4 w-4 animate-spin" /> : <FilePlus2 className="h-4 w-4" />}
+            {generating ? "Generating..." : "Generate New Audit"}
+          </Button>
+        }
       />
       <DemoBanner />
       <QueryGate loading={loading} error={error} onRetry={reload} isEmpty={!loading && !data?.length} empty={<EmptyState title="No reports" />}>

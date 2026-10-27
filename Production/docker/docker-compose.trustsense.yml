@@ -41,8 +41,8 @@ services:
   # 3. Backend Gateway & Provenance Engine (Node.js Express + Drizzle ORM)
   backend-gateway:
     build:
-      context: ../../Development/backend
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: Production/docker/Dockerfile.backend
     container_name: trustsense-backend
     restart: unless-stopped
     depends_on:
@@ -59,14 +59,14 @@ services:
       - FRONTEND_URL=http://localhost:3000
       - FABRIC_CHANNEL=bmschannel
       - FABRIC_CHAINCODE=trustsense-provenance
-      - AWS_S3_BUCKET=trustsense-bms-evidence
-      - AWS_REGION=us-east-1
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET:-trustsense-evidence-218733195047-ap-south-1}
+      - AWS_REGION=${AWS_REGION:-ap-south-1}
 
   # 4. Frontend Intelligence Dashboard (Next.js 16)
   frontend:
     build:
-      context: ../../Development/frontend
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: Production/docker/Dockerfile.frontend
     container_name: trustsense-frontend
     restart: unless-stopped
     depends_on:

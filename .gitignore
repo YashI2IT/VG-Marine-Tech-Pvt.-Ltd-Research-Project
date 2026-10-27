@@ -26,10 +26,12 @@ yarn-error.log*
 
 # Environment & Secrets (Keep .example files)
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+*.env
+**/.env
+**/.env.*
+!**/.env.example
+!*.env.example
 !.env.example
 
 # OS / Editor specific
@@ -49,10 +51,24 @@ uploads/*
 Development/backend/uploads/*
 !Development/backend/uploads/.gitkeep
 
+# Compiled Binaries & Chaincode artifacts
+chaincode-server
+*.exe
+chaincode/provenance/chaincode-server
+chaincode/provenance/vendor/
+
+# Database Dumps & Backups
+*.dump
+*.dump.meta
+Production/backups/*.dump
+Production/backups/*.dump.meta
+Production/backups/*.sha256
+
 # Large Datasets and Binary Archives (Exceeds GitHub 100MB limits)
 Documents/Dataset/
 Documents/Docs.zip
 *.zip
+*.tar.gz
 *.mat
 
 # Excluded from Git Tracking as requested
@@ -60,3 +76,4 @@ Documents/
 models/
 new models/
 *.bat
+

@@ -8,26 +8,59 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { DemoBanner, EmptyState } from "@/components/ui/States";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { formatTime } from "@/lib/format";
-import { getReport } from "@/services/reports";
+import { getReport, downloadReport } from "@/services/reports";
 import { useParams } from "next/navigation";
+import { useState } from "react";
+import { Download } from "lucide-react";
 
 export default function ReportDetailPage() {
   const { reportId } = useParams<{ reportId: string }>();
   const { data, loading, error, reload } = useAsyncData(() => getReport(reportId), [reportId]);
+  const [downloading, setDownloading] = useState(false);
+
+  async function handleDownload(format: "json" | "csv") {
+    try {
+      setDownloading(true);
+      await downloadReport(reportId, format);
+    } catch (err) {
+      console.error("Download failed:", err);
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   return (
     <div>
       <PageHeader
         title={data?.type ?? "Report"}
-        description="Preview and audit reference. Download is a placeholder."
+        description="Preview and audit reference reconciled with PostgreSQL and blockchain anchors."
         crumbs={[
           { href: "/reports", label: "Reports" },
           { label: reportId },
         ]}
         actions={
-          <Button type="button" variant="secondary" disabled title="PDF generation is not implemented">
-            Download PDF
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => handleDownload("csv")}
+              disabled={downloading || !data}
+              className="flex items-center gap-1.5"
+            >
+              <Download className="h-4 w-4" />
+              CSV
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => handleDownload("json")}
+              disabled={downloading || !data}
+              className="flex items-center gap-1.5"
+            >
+              <Download className="h-4 w-4" />
+              Audit JSON
+            </Button>
+          </div>
         }
       />
       <DemoBanner />

@@ -205,8 +205,8 @@ async function runTests() {
   await httpPost('http://localhost:3001/api/trustsense/simulation/control', { action: 'speed', value: 20 });
   await httpPost('http://localhost:3001/api/trustsense/simulation/control', { action: 'start' });
 
-  // Stream for 4 seconds to produce 60+ samples and finalize at least one batch
-  await new Promise(r => setTimeout(r, 4000));
+  // Stream for 6 seconds to produce 60+ samples and finalize at least one batch
+  await new Promise(r => setTimeout(r, 6000));
   const pauseState = await httpPost('http://localhost:3001/api/trustsense/simulation/control', { action: 'pause' });
 
   assert(pauseState.body.state.currentSampleIndex > 40, `Processed ${pauseState.body.state.currentSampleIndex} samples`);

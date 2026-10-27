@@ -196,6 +196,7 @@ export default function UserPoolPage() {
                 <thead>
                   <tr className="border-b border-slate-100 text-xs font-semibold uppercase text-slate-400">
                     <th className="pb-3">User Profile</th>
+                    <th className="pb-3">Tenant / Company</th>
                     <th className="pb-3">Role</th>
                     <th className="pb-3">Status</th>
                     <th className="pb-3">Registered Date</th>
@@ -203,57 +204,70 @@ export default function UserPoolPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {filteredUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-slate-50/50">
-                      <td className="py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
-                            {u.name.charAt(0).toUpperCase()}
+                  {filteredUsers.length > 0 ? (
+                    filteredUsers.map((u) => (
+                      <tr key={u.id} className="hover:bg-slate-50/50">
+                        <td className="py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
+                              {u.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-slate-900">{u.name}</p>
+                              <p className="text-xs text-slate-400 font-mono">{u.email}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-semibold text-slate-900">{u.name}</p>
-                            <p className="text-xs text-slate-400 font-mono">{u.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3.5">
-                        <select
-                          value={u.role}
-                          onChange={(e) => handleRoleChange(u, e.target.value)}
-                          className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 outline-none focus:border-blue-400"
-                        >
-                          <option value="admin">admin</option>
-                          <option value="operator">operator</option>
-                          <option value="user">user</option>
-                          <option value="viewer">viewer</option>
-                        </select>
-                      </td>
-                      <td className="py-3.5">
-                        <button
-                          onClick={() => handleToggleStatus(u)}
-                          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition ${
-                            u.status === "active"
-                              ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                              : "bg-rose-50 text-rose-700 hover:bg-rose-100"
-                          }`}
-                        >
-                          {u.status}
-                        </button>
-                      </td>
-                      <td className="py-3.5 text-xs text-slate-500">
-                        {new Date(u.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="py-3.5 text-right">
-                        <button
-                          onClick={() => handleDelete(u)}
-                          title="Delete User"
-                          className="rounded-full p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        </td>
+                        <td className="py-3.5">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                            {u.companyName || u.tenantName || (u.tenantId ? `Tenant #${u.tenantId}` : "Platform Root")}
+                          </span>
+                        </td>
+                        <td className="py-3.5">
+                          <select
+                            value={u.role}
+                            onChange={(e) => handleRoleChange(u, e.target.value)}
+                            className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 outline-none focus:border-blue-400"
+                          >
+                            <option value="admin">admin</option>
+                            <option value="operator">operator</option>
+                            <option value="user">user</option>
+                            <option value="viewer">viewer</option>
+                          </select>
+                        </td>
+                        <td className="py-3.5">
+                          <button
+                            onClick={() => handleToggleStatus(u)}
+                            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition ${
+                              u.status === "active"
+                                ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                : "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                            }`}
+                          >
+                            {u.status}
+                          </button>
+                        </td>
+                        <td className="py-3.5 text-xs text-slate-500">
+                          {new Date(u.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="py-3.5 text-right">
+                          <button
+                            onClick={() => handleDelete(u)}
+                            title="Delete User"
+                            className="rounded-full p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-xs text-slate-400">
+                        No users matching filter criteria.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>

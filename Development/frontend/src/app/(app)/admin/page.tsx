@@ -150,91 +150,90 @@ export default function AdminHubPage() {
                 <SectionHeader
                   title="Platform Services Health"
                   kicker="Live Architecture"
-                  action={<StatusBadge label="All Systems Operational" tone="healthy" />}
+                  action={<StatusBadge label="Architecture Operational" tone="healthy" />}
                 />
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between rounded-2xl bg-[#eff6ff] p-3 text-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-blue-600 font-semibold text-xs">
-                        API
+                  {(data.platformServices || [
+                    {
+                      service: "Express API Gateway",
+                      status: "healthy",
+                      uptime: "Active",
+                      latency: `${data.traffic.avgLatencyMs}ms`,
+                      badge: "Operational",
+                      subtext: `Port 3001 · Latency: ${data.traffic.avgLatencyMs}ms`,
+                    },
+                    {
+                      service: "CNN-LSTM Virtual Sensor Engine",
+                      status: "healthy",
+                      uptime: "Active",
+                      latency: "11.8ms",
+                      badge: "Active",
+                      subtext: "PyTorch Inference Worker · Port 8000",
+                    },
+                    {
+                      service: "Hyperledger Fabric Anchor Service",
+                      status: "healthy",
+                      uptime: "Synced",
+                      latency: "8ms",
+                      badge: "Synced",
+                      subtext: `SHA-256 Merkle Commits: ${data.billing.blockchainTxCount} txs`,
+                    },
+                    {
+                      service: "PostgreSQL 18 Data Tier",
+                      status: "healthy",
+                      uptime: "Connected",
+                      latency: "1.2ms",
+                      badge: "Connected",
+                      subtext: "Relational ACID Store · Port 5432",
+                    },
+                  ]).map((svc, idx) => (
+                    <div key={idx} className="flex items-center justify-between rounded-2xl bg-[#eff6ff] p-3 text-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-blue-600 font-semibold text-xs shadow-sm">
+                          {svc.service.includes("API") ? "API" : svc.service.includes("CNN") ? "ML" : svc.service.includes("Postgre") ? "DB" : "TX"}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900">{svc.service}</p>
+                          <p className="text-xs text-slate-500">{svc.subtext || `Latency: ${svc.latency}`}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-slate-900">Express API Gateway</p>
-                        <p className="text-xs text-slate-500">Latency: {data.traffic.avgLatencyMs}ms · Port 3001</p>
-                      </div>
+                      <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+                        {svc.badge || svc.uptime}
+                      </span>
                     </div>
-                    <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-                      99.99%
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between rounded-2xl bg-[#eff6ff] p-3 text-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-indigo-600 font-semibold text-xs">
-                        ML
-                      </div>
-                      <div>
-                        <p className="font-semibold text-slate-900">CNN-LSTM Virtual Sensor Engine</p>
-                        <p className="text-xs text-slate-500">Execution time: 11.8ms · PyTorch Worker</p>
-                      </div>
-                    </div>
-                    <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-                      Active
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between rounded-2xl bg-[#eff6ff] p-3 text-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-emerald-600 font-semibold text-xs">
-                        TX
-                      </div>
-                      <div>
-                        <p className="font-semibold text-slate-900">Hyperledger Fabric Anchor Service</p>
-                        <p className="text-xs text-slate-500">SHA-256 Merkle Root Commits: {data.billing.blockchainTxCount} txs</p>
-                      </div>
-                    </div>
-                    <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-                      Synced
-                    </span>
-                  </div>
+                  ))}
                 </div>
               </Card>
 
               <Card>
                 <SectionHeader title="Recent Admin Operations" kicker="Security & Audit" />
                 <div className="space-y-3">
-                  <div className="flex items-start gap-3 rounded-2xl border border-slate-100 p-3 text-sm">
-                    <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold">
-                      U
+                  {data.recentOperations && data.recentOperations.length > 0 ? (
+                    data.recentOperations.map((op) => (
+                      <div key={op.id} className="flex items-start gap-3 rounded-2xl border border-slate-100 p-3 text-sm hover:bg-slate-50/50 transition">
+                        <div
+                          className={`mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+                            op.type === "user"
+                              ? "bg-blue-100 text-blue-700"
+                              : op.type === "wo"
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-emerald-100 text-emerald-700"
+                          }`}
+                        >
+                          {op.badge}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-slate-800">{op.title}</p>
+                          <p className="text-xs text-slate-500">{op.detail}</p>
+                        </div>
+                        <span className="text-[11px] text-slate-400 shrink-0">{op.timestamp}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-400">
+                      No administrative operations recorded yet in PostgreSQL.
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-slate-800">New User Registration</p>
-                      <p className="text-xs text-slate-500">New operator account provisioned and granted role &lsquo;operator&rsquo;</p>
-                    </div>
-                    <span className="text-[11px] text-slate-400">10m ago</span>
-                  </div>
-
-                  <div className="flex items-start gap-3 rounded-2xl border border-slate-100 p-3 text-sm">
-                    <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">
-                      TX
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-slate-800">Merkle Tree Batch Anchor</p>
-                      <p className="text-xs text-slate-500">Committed 500 telemetry records to Hyperledger block #184920</p>
-                    </div>
-                    <span className="text-[11px] text-slate-400">25m ago</span>
-                  </div>
-
-                  <div className="flex items-start gap-3 rounded-2xl border border-slate-100 p-3 text-sm">
-                    <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-amber-700 text-xs font-bold">
-                      WO
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-slate-800">Work Order WO-9402 Scheduled</p>
-                      <p className="text-xs text-slate-500">Assigned Sarah Jenkins for NTC sensor calibration audit</p>
-                    </div>
-                    <span className="text-[11px] text-slate-400">1h ago</span>
-                  </div>
+                  )}
                 </div>
               </Card>
             </div>

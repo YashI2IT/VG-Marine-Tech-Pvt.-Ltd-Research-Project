@@ -8,9 +8,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install python dependencies
-RUN pip install --no-cache-dir \
-    tensorflow==2.18.0 \
+# Install python dependencies (CPU-optimized for server container inference with extended timeout)
+RUN pip install --no-cache-dir --default-timeout=600 \
+    tensorflow-cpu==2.18.0 \
     fastapi==0.115.0 \
     uvicorn==0.32.0 \
     scipy==1.14.1 \
@@ -19,9 +19,19 @@ RUN pip install --no-cache-dir \
     joblib==1.4.2 \
     pydantic==2.9.2
 
+
 # Copy models and code
 COPY models /app/models
 
+# Security: Non-root execution
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8000
+
+ENV HOST=0.0.0.0
+ENV PORT=8000
+ENV TF_ENABLE_ONEDNN_OPTS=0
+ENV PYTHONUNBUFFERED=1
 
 CMD ["python", "models/inference_service.py"]

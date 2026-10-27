@@ -14,7 +14,14 @@ export type RegisterPayload = {
   role?: string;
 };
 
-export type AuthUser = { id: number; email: string; role: string; name?: string };
+export type AuthUser = {
+  id: number;
+  email: string;
+  role: string;
+  name?: string;
+  tenantId?: number;
+  onboardingCompleted?: boolean;
+};
 
 export function classifyAuthError(err: unknown): { kind: "invalid" | "server" | "network" | "validation" | "conflict"; message: string } {
   if (isAxiosError(err)) {

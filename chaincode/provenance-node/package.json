@@ -1,0 +1,19 @@
+{
+  "name": "trustsense-provenance-chaincode",
+  "version": "1.0.0",
+  "description": "TrustSense-BMS Hyperledger Fabric Chaincode for Battery Provenance and Merkle Root Anchoring",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18",
+    "npm": ">=9"
+  },
+  "scripts": {
+    "start": "fabric-chaincode-node start"
+  },
+  "dependencies": {
+    "fabric-contract-api": "^2.5.4",
+    "fabric-shim": "^2.5.4"
+  },
+  "author": "TrustSense-BMS Team",
+  "license": "Apache-2.0"
+}

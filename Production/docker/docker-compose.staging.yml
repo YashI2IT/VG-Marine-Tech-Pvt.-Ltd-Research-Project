@@ -1,0 +1,148 @@
+version: '3.8'
+
+# =====================================================================
+# ECUlytics / TrustSense-BMS: Local Staging Environment
+# Isolated service names, dedicated networks, non-conflicting host ports (127.0.0.1 loopback only).
+# Connects to existing running Hyperledger Fabric network without restarting it.
+# =====================================================================
+
+networks:
+  trustsense-staging-net:
+    name: trustsense-staging-net
+    driver: bridge
+  trustsense-fabric:
+    external: true
+
+volumes:
+  staging_postgres_data:
+    name: trustsense_staging_postgres_data
+
+services:
+  # -------------------------------------------------------------------
+  # 1. Staging Database (PostgreSQL 16)
+  # Host Port: 5433 (avoids dev Postgres on 5432)
+  # -------------------------------------------------------------------
+  staging-postgres:
+    image: postgres:16-alpine
+    container_name: trustsense-staging-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${STAGING_POSTGRES_USER:-eculytics_staging}
+      POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD:-StagingSecretPass2026!}
+      POSTGRES_DB: ${STAGING_POSTGRES_DB:-eculytics_staging}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - staging_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${STAGING_POSTGRES_USER:-eculytics_staging} -d ${STAGING_POSTGRES_DB:-eculytics_staging}"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    networks:
+      - trustsense-staging-net
+
+  # -------------------------------------------------------------------
+  # 2. Staging Thermal AI Virtual Sensor (FastAPI + TensorFlow CNN-LSTM)
+  # Host Port: 8002 (avoids dev on 8000)
+  # -------------------------------------------------------------------
+  staging-thermal-ai:
+    build:
+      context: ../..
+      dockerfile: Production/docker/Dockerfile.inference
+    image: trustsense-thermal-ai:staging
+    container_name: trustsense-staging-thermal-ai
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8002:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - TF_ENABLE_ONEDNN_OPTS=0
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - trustsense-staging-net
+
+  # -------------------------------------------------------------------
+  # 3. Staging Backend Gateway (Node.js Express + Drizzle ORM)
+  # Host Port: 3011 (avoids dev on 3001)
+  # -------------------------------------------------------------------
+  staging-backend:
+    build:
+      context: ../..
+      dockerfile: Production/docker/Dockerfile.backend
+    image: trustsense-backend:staging
+    container_name: trustsense-staging-backend
+    restart: unless-stopped
+    depends_on:
+      staging-postgres:
+        condition: service_healthy
+      staging-thermal-ai:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3011:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=postgres://${STAGING_POSTGRES_USER:-eculytics_staging}:${STAGING_POSTGRES_PASSWORD:-StagingSecretPass2026!}@staging-postgres:5432/${STAGING_POSTGRES_DB:-eculytics_staging}
+      - THERMAL_AI_URL=http://staging-thermal-ai:8000
+      - FRONTEND_URL=http://localhost:3010
+      - JWT_SECRET=${STAGING_JWT_SECRET:-trustsense_staging_production_test_secret_key_marine_2026_at_least_32_chars}
+      - STORAGE_MODE=auto
+      - AWS_REGION=ap-south-1
+      - AWS_S3_BUCKET=trustsense-evidence-218733195047-ap-south-1
+      - AWS_PROFILE=trustsense-restricted
+      - FABRIC_ENABLED=true
+      - FABRIC_MSP_ID=Org1MSP
+      - FABRIC_CHANNEL=bmschannel
+      - FABRIC_CHAINCODE=trustsense-provenance
+      - FABRIC_PEER_ENDPOINT=peer0.org1.example.com:7051
+      - FABRIC_PEER_HOSTNAME=peer0.org1.example.com
+      - FABRIC_PEER_HOST_OVERRIDE=peer0.org1.example.com
+      - FABRIC_TLS_CERT_PATH=/etc/fabric/crypto/ca.crt
+      - FABRIC_CERT_PATH=/etc/fabric/crypto/user.crt
+      - FABRIC_KEY_PATH=/etc/fabric/crypto/user.key
+      - FABRIC_USER_CERT_PATH=/etc/fabric/crypto/user.crt
+      - FABRIC_USER_KEY_PATH=/etc/fabric/crypto/user.key
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID:-rzp_test_TrEgT04YnyqX6j}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET:-IP7jECDYXrOczv1tuSj2wbW0}
+      - RAZORPAY_WEBHOOK_SECRET=${RAZORPAY_WEBHOOK_SECRET:-whsec_staging_test_secret_2026}
+    volumes:
+      - ../fabric/test-crypto:/etc/fabric/crypto:ro
+      - ~/.aws:/home/node/.aws:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - trustsense-staging-net
+      - trustsense-fabric
+
+  # -------------------------------------------------------------------
+  # 4. Staging Frontend Dashboard (Next.js 16)
+  # Host Port: 3010 (avoids dev on 3000)
+  # -------------------------------------------------------------------
+  staging-frontend:
+    build:
+      context: ../..
+      dockerfile: Production/docker/Dockerfile.frontend
+    image: trustsense-frontend:staging
+    container_name: trustsense-staging-frontend
+    restart: unless-stopped
+    depends_on:
+      staging-backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3010:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=http://localhost:3011
+    networks:
+      - trustsense-staging-net

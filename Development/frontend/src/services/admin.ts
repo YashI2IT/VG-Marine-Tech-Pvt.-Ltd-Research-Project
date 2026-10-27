@@ -34,6 +34,22 @@ export interface AdminStats {
     blockchainTxCount: number;
     nextInvoiceDate: string;
   };
+  platformServices?: {
+    service: string;
+    status: string;
+    uptime: string;
+    latency: string;
+    badge: string;
+    subtext: string;
+  }[];
+  recentOperations?: {
+    id: string;
+    type: "user" | "tx" | "wo";
+    badge: string;
+    title: string;
+    detail: string;
+    timestamp: string;
+  }[];
 }
 
 export interface AdminUser {
@@ -44,6 +60,10 @@ export interface AdminUser {
   status: "active" | "suspended";
   createdAt: string;
   lastLogin?: string;
+  tenantId?: number | null;
+  tenantName?: string | null;
+  companyName?: string | null;
+  onboardingCompleted?: boolean;
 }
 
 export interface TrafficAnalytics {
@@ -55,6 +75,7 @@ export interface TrafficAnalytics {
     p99LatencyMs: number;
     bandwidthTodayGB: number;
     activeUserSessions: number;
+    errorRate?: string;
   };
   hourlyTraffic: {
     hour: string;
@@ -101,6 +122,11 @@ export interface MaintenanceData {
     status: string;
     driftError: string;
   }[];
+  sla: {
+    uptimeScore: string;
+    uptimeHours: number;
+    databaseStatus: string;
+  };
 }
 
 export interface BillingData {
@@ -184,3 +210,60 @@ export async function getAdminBilling(): Promise<BillingData> {
   const { data } = await api.get<BillingData>("/admin/billing");
   return data;
 }
+
+export interface PlanOption {
+  id: string;
+  name: string;
+  tier: string;
+  amountMonthly: number;
+  currency: string;
+  billingCycle: string;
+  quotas: {
+    telemetryCalls: number;
+    virtualSensorInferences: number;
+    merkleAnchors: number;
+    monitoredVehicles: number;
+  };
+  features: string[];
+}
+
+export async function getBillingPlans(): Promise<{ plans: PlanOption[]; config: any }> {
+  const { data } = await api.get<{ plans: PlanOption[]; config: any }>("/admin/billing/plans");
+  return data;
+}
+
+export async function createBillingOrder(planId: string): Promise<any> {
+  const { data } = await api.post("/admin/billing/order", { planId });
+  return data;
+}
+
+export async function verifyBillingPayment(
+  orderId: string,
+  paymentId: string,
+  signature: string
+): Promise<any> {
+  const { data } = await api.post("/admin/billing/verify", { orderId, paymentId, signature });
+  return data;
+}
+
+export async function devSimulatePayment(orderId: string): Promise<any> {
+  const { data } = await api.post("/admin/billing/dev-simulate-payment", { orderId });
+  return data;
+}
+
+export async function runMaintenanceDiagnostics(): Promise<{
+  success: boolean;
+  message: string;
+  results: {
+    service: string;
+    status: "healthy" | "degraded" | "down";
+    latencyMs: number;
+    details: string;
+  }[];
+  timestamp: string;
+}> {
+  const { data } = await api.post("/admin/maintenance/diagnostics");
+  return data;
+}
+
+

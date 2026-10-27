@@ -207,7 +207,12 @@ export interface TimePoint {
 }
 
 export interface DashboardSummary {
-  demo: true;
+  demo?: boolean;
+  tenant?: {
+    id: number;
+    name: string;
+    industry?: string;
+  };
   fleet: {
     totalVehicles: number;
     healthy: number;
@@ -215,15 +220,56 @@ export interface DashboardSummary {
     critical: number;
     thermalRiskCount: number;
     anomalyCount: number;
+    reportingVehicles?: number;
+    source?: string;
   };
   vehiclesAtRisk: Vehicle[];
   anomalies: ThermalAnomaly[];
-  hotspot: Hotspot;
-  cooling: CoolingHealth;
-  sensors: { healthy: number; faulty: number; items: SensorHealth[] };
-  aging: { highExposureCount: number; top: ThermalExposure[] };
-  forecast: Forecast;
+  hotspot: (Hotspot & {
+    tmin?: number;
+    tavg?: number;
+    location?: string;
+    name?: string;
+    hasSpatialCellTelemetry?: boolean;
+    spatialTelemetryNotice?: string;
+  }) | null;
+  cooling: CoolingHealth | null;
+  sensors: {
+    totalMonitored?: number;
+    healthy: number;
+    watch?: number;
+    faulty: number;
+    items: SensorHealth[];
+    latestTelemetry?: {
+      deviceId: string | null;
+      trustDecision: string;
+      timestamp: string | null;
+    } | null;
+  };
+  aging: {
+    highExposureCount: number;
+    top: ThermalExposure[];
+    passports?: any[];
+  };
+  forecast: Forecast & {
+    confidence?: string;
+    measuredTemperature?: number | null;
+    residualDegC?: number | null;
+    oodStatus?: string;
+    modelVersion?: string;
+    measurementTimestamp?: string | null;
+    fetchTimestamp?: string;
+    detailedTrend?: { label: string; predicted: number; measured?: number }[];
+    advisoryNote?: string;
+  };
   maintenance: MaintenanceItem[];
-  sensorReduction: SensorConfiguration;
+  sensorReduction: SensorConfiguration & {
+    status?: string;
+    title?: string;
+    description?: string;
+    isProductionActive?: boolean;
+    advisoryNote?: string;
+  };
   recentEvents: ThermalEvent[];
+  lastUpdated?: string;
 }

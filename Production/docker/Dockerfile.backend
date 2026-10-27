@@ -4,16 +4,22 @@ WORKDIR /app
 COPY Development/backend/package*.json ./
 RUN npm ci
 COPY Development/backend/ ./
-RUN npm run build || true
+RUN npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY Development/backend/package*.json ./
-RUN npm ci --only=production
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/data ./data
-COPY --from=builder /app/tsconfig.json ./
+
+# Security: Non-root execution using built-in node user
+COPY --chown=node:node Development/backend/package*.json ./
+RUN npm ci --omit=dev
+
+COPY --chown=node:node --from=builder /app/dist ./dist
+COPY --chown=node:node --from=builder /app/data ./data
+
+RUN mkdir -p /app/uploads /app/uploads/evidence && chown -R node:node /app/uploads
+
+USER node
 
 EXPOSE 3001
-CMD ["npm", "run", "dev"]
+CMD ["node", "dist/index.js"]

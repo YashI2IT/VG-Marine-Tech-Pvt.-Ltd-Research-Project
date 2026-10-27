@@ -49,7 +49,6 @@ export default function SettingsPage() {
           <div className="max-w-lg space-y-4">
             <SectionHeader title="Tenant" />
             <Field label="Workspace"><TextInput defaultValue="Global Fleet Ops" disabled /></Field>
-            <Field label="Role"><TextInput defaultValue={currentUser.role} disabled /></Field>
           </div>
         ) : null}
         {tab === "alerts" ? (

@@ -13,9 +13,11 @@
 import express, { Request, Response } from "express";
 import http from "http";
 import { simulationEngine } from "../simulation/engine";
+import { telemetryPipeline } from "../pipeline/processor";
+import { acquisitionManager } from "../acquisition/manager";
 import { db } from "../db";
 import * as schema from "../db/schema";
-import { eq, desc, isNotNull } from "drizzle-orm";
+import { eq, desc, isNotNull, count } from "drizzle-orm";
 import {
   canonicalizeRecord,
   sha256,
@@ -26,8 +28,38 @@ import {
 } from "../provenance/merkle";
 import { ledgerGateway } from "../blockchain/ledger";
 import { cloudStorage } from "../cloud/storage";
+import { thermalAiBaseUrl } from "../config";
 
 const router = express.Router();
+
+async function loadPersistenceCounts() {
+  try {
+    const [telemetry, predictions, quarantined, batches, anchors] = await Promise.all([
+      db.select({ n: count() }).from(schema.telemetryRecords),
+      db.select({ n: count() }).from(schema.predictionRecords),
+      db.select({ n: count() }).from(schema.quarantinedRecords),
+      db.select({ n: count() }).from(schema.merkleBatches),
+      db.select({ n: count() }).from(schema.ledgerAnchors),
+    ]);
+    return {
+      persistenceAvailable: true,
+      telemetryRecords: Number(telemetry[0]?.n ?? 0),
+      predictionRecords: Number(predictions[0]?.n ?? 0),
+      quarantinedRecords: Number(quarantined[0]?.n ?? 0),
+      merkleBatches: Number(batches[0]?.n ?? 0),
+      ledgerAnchors: Number(anchors[0]?.n ?? 0),
+    };
+  } catch {
+    return {
+      persistenceAvailable: false,
+      telemetryRecords: null,
+      predictionRecords: null,
+      quarantinedRecords: null,
+      merkleBatches: null,
+      ledgerAnchors: null,
+    };
+  }
+}
 
 /**
  * GET /api/trustsense/status
@@ -36,14 +68,16 @@ const router = express.Router();
 router.get("/status", async (req: Request, res: Response) => {
   try {
     const simState = simulationEngine.getState();
+    const pipelineState = telemetryPipeline.getState();
+    const acquisition = acquisitionManager.getStatus();
     const ledgerStatus = await ledgerGateway.getStatus();
     const storageStatus = cloudStorage.getStatus();
 
     let modelStatus = { status: "unknown", ready: false };
     try {
       const resp = await new Promise<any>((resolve) => {
-        http
-          .get("http://127.0.0.1:8000/health", (r) => {
+        const req = http
+          .get(`${thermalAiBaseUrl()}/health`, (r) => {
             let b = "";
             r.on("data", (c) => (b += c));
             r.on("end", () => {
@@ -53,19 +87,28 @@ router.get("/status", async (req: Request, res: Response) => {
                 resolve({ status: "error", ready: false });
               }
             });
-          })
-          .on("error", () => resolve({ status: "offline", ready: false }));
+          });
+        req.setTimeout(2000, () => {
+          req.destroy();
+          resolve({ status: "timeout", ready: false });
+        });
+        req.on("error", () => resolve({ status: "offline", ready: false }));
       });
       modelStatus = resp;
     } catch {}
+
+    const counts = await loadPersistenceCounts();
 
     res.json({
       pipeline: "TrustSense-BMS Battery Thermal Intelligence",
       status: "operational",
       simulation: simState,
+      pipelineState,
+      acquisition,
       model: modelStatus,
       ledger: ledgerStatus,
       storage: storageStatus,
+      counts,
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
@@ -81,8 +124,8 @@ router.get("/status", async (req: Request, res: Response) => {
 router.get("/cycles", async (req: Request, res: Response) => {
   try {
     const cyclesRes = await new Promise<any>((resolve) => {
-      http
-        .get("http://127.0.0.1:8000/api/dataset/cycles", (r) => {
+      const req = http
+        .get(`${thermalAiBaseUrl()}/api/dataset/cycles`, (r) => {
           let b = "";
           r.on("data", (c) => (b += c));
           r.on("end", () => {
@@ -92,8 +135,12 @@ router.get("/cycles", async (req: Request, res: Response) => {
               resolve({ count: 0, cycles: [] });
             }
           });
-        })
-        .on("error", () => resolve({ count: 0, cycles: [] }));
+        });
+      req.setTimeout(2000, () => {
+        req.destroy();
+        resolve({ count: 0, cycles: [] });
+      });
+      req.on("error", () => resolve({ count: 0, cycles: [] }));
     });
     res.json(cyclesRes);
   } catch (err) {
@@ -155,6 +202,32 @@ router.get("/simulation/stream", (req: Request, res: Response) => {
   });
 
   simulationEngine.addSseClient(res);
+});
+
+/**
+ * POST /api/trustsense/telemetry/ingest
+ * Physical BMS / gateway HTTP ingestion (read-only). Optional header X-Telemetry-Token.
+ */
+router.post("/telemetry/ingest", async (req: Request, res: Response) => {
+  if (!acquisitionManager.authorize(req.header("x-telemetry-token") || undefined)) {
+    return res.status(401).json({ error: "Invalid or missing X-Telemetry-Token" });
+  }
+  try {
+    const result = await acquisitionManager.ingestHttp(req.body || {});
+    return res.status(result.status).json(result.body);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Ingest failed" });
+  }
+});
+
+/**
+ * GET /api/trustsense/telemetry/status
+ */
+router.get("/telemetry/status", (_req: Request, res: Response) => {
+  res.json({
+    acquisition: acquisitionManager.getStatus(),
+    pipeline: telemetryPipeline.getState(),
+  });
 });
 
 /**
@@ -407,16 +480,45 @@ router.post("/provenance/tamper_test", async (req: Request, res: Response) => {
 
 /**
  * GET /api/trustsense/evidence/:batchId
- * Fetch full off-chain evidence manifest for a batch
+ * Fetch full off-chain evidence manifest for a batch (protected against directory traversal & cross-tenant access)
  */
-router.get("/evidence/:batchId", (req: Request, res: Response) => {
+router.get("/evidence/:batchId", async (req: Request, res: Response) => {
   const batchId = req.params.batchId as string;
-  const evidence = cloudStorage.getBatchEvidence(batchId);
-  if (!evidence) {
-    return res.status(404).json({ error: `Evidence file for batch '${batchId}' not found.` });
+  if (!/^[a-zA-Z0-9_\-]+$/.test(batchId)) {
+    return res.status(400).json({ error: "Invalid batch ID format." });
   }
-  res.json(evidence);
+
+  const user = (req as any).user;
+  const tenantId = user?.tenantId;
+  const userRole = user?.role;
+
+  try {
+    const evidence = await cloudStorage.getBatchEvidence(batchId, tenantId, userRole);
+    if (!evidence) {
+      return res.status(404).json({ error: `Evidence file for batch '${batchId}' not found.` });
+    }
+    res.json(evidence);
+  } catch (err: any) {
+    if (err.status === 403) {
+      return res.status(403).json({ error: err.message });
+    }
+    res.status(500).json({ error: "Failed to retrieve evidence." });
+  }
 });
+
+/**
+ * POST /api/trustsense/storage/probe
+ * Tests genuine AWS S3 upload, readback, integrity check, and cleanup
+ */
+router.post("/storage/probe", async (req: Request, res: Response) => {
+  try {
+    const result = await cloudStorage.probeLiveS3Connection();
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 
 /**
  * GET /api/trustsense/passport/:batteryId

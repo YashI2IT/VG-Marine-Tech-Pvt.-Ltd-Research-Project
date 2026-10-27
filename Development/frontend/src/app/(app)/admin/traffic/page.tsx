@@ -139,51 +139,63 @@ export default function TrafficAnalyticsPage() {
               <Card className="lg:col-span-2">
                 <SectionHeader title="Top API Endpoint Loads" kicker="Microservice Breakdown" />
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead>
-                      <tr className="border-b border-slate-100 text-xs font-semibold uppercase text-slate-400">
-                        <th className="pb-3">Endpoint Route</th>
-                        <th className="pb-3 text-right">24h Invocations</th>
-                        <th className="pb-3 text-right">Avg Latency</th>
-                        <th className="pb-3 text-right">Error Rate</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50 text-slate-700">
-                      {data.endpointBreakdown.map((ep, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/50">
-                          <td className="py-3 font-mono text-xs text-blue-600 font-medium">{ep.endpoint}</td>
-                          <td className="py-3 text-right font-semibold">{ep.hits.toLocaleString()}</td>
-                          <td className="py-3 text-right">{ep.avgMs} ms</td>
-                          <td className="py-3 text-right">
-                            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                              {ep.errorRate}
-                            </span>
-                          </td>
+                  {data.endpointBreakdown.length > 0 ? (
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-100 text-xs font-semibold uppercase text-slate-400">
+                          <th className="pb-3">Endpoint Route</th>
+                          <th className="pb-3 text-right">24h Invocations</th>
+                          <th className="pb-3 text-right">Avg Latency</th>
+                          <th className="pb-3 text-right">Error Rate</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50 text-slate-700">
+                        {data.endpointBreakdown.map((ep, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50/50">
+                            <td className="py-3 font-mono text-xs text-blue-600 font-medium">{ep.endpoint}</td>
+                            <td className="py-3 text-right font-semibold">{ep.hits.toLocaleString()}</td>
+                            <td className="py-3 text-right">{ep.avgMs} ms</td>
+                            <td className="py-3 text-right">
+                              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                                {ep.errorRate}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-xs text-slate-400">
+                      No endpoint invocations recorded yet in the active monitoring window.
+                    </div>
+                  )}
                 </div>
               </Card>
 
               <Card>
                 <SectionHeader title="Tenant Traffic Share" kicker="Client Distribution" />
                 <div className="space-y-4 pt-2">
-                  {data.clientTenants.map((t, idx) => (
-                    <div key={idx} className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs font-medium">
-                        <span className="text-slate-800">{t.tenant}</span>
-                        <span className="font-semibold text-slate-900">{t.share}</span>
+                  {data.clientTenants.length > 0 ? (
+                    data.clientTenants.map((t, idx) => (
+                      <div key={idx} className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs font-medium">
+                          <span className="text-slate-800">{t.tenant}</span>
+                          <span className="font-semibold text-slate-900">{t.share}</span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-slate-100">
+                          <div
+                            className="h-2 rounded-full bg-blue-600"
+                            style={{ width: t.share }}
+                          ></div>
+                        </div>
+                        <p className="text-[11px] text-slate-400">{t.requests.toLocaleString()} total requests</p>
                       </div>
-                      <div className="h-2 w-full rounded-full bg-slate-100">
-                        <div
-                          className="h-2 rounded-full bg-blue-600"
-                          style={{ width: t.share }}
-                        ></div>
-                      </div>
-                      <p className="text-[11px] text-slate-400">{t.requests.toLocaleString()} total requests</p>
+                    ))
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-xs text-slate-400">
+                      No tenant traffic attributed yet in current window.
                     </div>
-                  ))}
+                  )}
                 </div>
               </Card>
             </div>

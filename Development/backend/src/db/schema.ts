@@ -13,6 +13,7 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   role: varchar("role", { length: 50 }).notNull().default("user"),
   status: varchar("status", { length: 50 }).notNull().default("active"),
+  onboardingCompleted: boolean("onboarding_completed").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -23,6 +24,30 @@ export const tenantUsers = pgTable("tenant_users", {
 }, (t) => ({
   pk: primaryKey({ columns: [t.tenantId, t.userId] })
 }));
+
+export const companyProfiles = pgTable("company_profiles", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull().unique(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  companyName: varchar("company_name", { length: 255 }).notNull(),
+  industry: varchar("industry", { length: 100 }).notNull(),
+  website: varchar("website", { length: 255 }),
+  contactEmail: varchar("contact_email", { length: 255 }).notNull(),
+  organizationType: varchar("organization_type", { length: 100 }).notNull(),
+  gstin: varchar("gstin", { length: 50 }),
+  isGstRegistered: boolean("is_gst_registered").notNull().default(true),
+  country: varchar("country", { length: 100 }).notNull(),
+  state: varchar("state", { length: 100 }),
+  city: varchar("city", { length: 100 }).notNull(),
+  postalCode: varchar("postal_code", { length: 50 }).notNull(),
+  address: text("address").notNull(),
+  fleetSize: varchar("fleet_size", { length: 50 }).notNull(),
+  primaryApplication: varchar("primary_application", { length: 100 }).notNull(),
+  description: text("description"),
+  isCompleted: boolean("is_completed").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
 
 // --- CLOUD PLATFORM MODELS ---
 
@@ -78,6 +103,8 @@ export const simulationSessions = pgTable("simulation_sessions", {
   speed: doublePrecision("speed").default(1.0),
   totalSamples: integer("total_samples").default(0),
   processedSamples: integer("processed_samples").default(0),
+  sourceMode: varchar("source_mode", { length: 50 }).notNull().default("DATASET_REPLAY"),
+  deviceId: varchar("device_id", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -98,6 +125,8 @@ export const telemetryRecords = pgTable("telemetry_records", {
   trustDecision: varchar("trust_decision", { length: 50 }).notNull().default("SAFE"),
   recordHash: varchar("record_hash", { length: 255 }).notNull(),
   batchId: varchar("batch_id", { length: 255 }),
+  deviceId: varchar("device_id", { length: 255 }),
+  dataSource: varchar("data_source", { length: 50 }).notNull().default("DATASET_REPLAY"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -139,6 +168,10 @@ export const merkleBatches = pgTable("merkle_batches", {
   leaves: jsonb("leaves").notNull(),
   treeStructure: jsonb("tree_structure"),
   s3ObjectKey: varchar("s3_object_key", { length: 512 }),
+  storageProvider: varchar("storage_provider", { length: 50 }).notNull().default("LOCAL_S3_COMPATIBLE"),
+  sha256Checksum: varchar("sha256_checksum", { length: 64 }),
+  uploadedAt: timestamp("uploaded_at"),
+  tenantId: integer("tenant_id").notNull().default(1),
   status: varchar("status", { length: 50 }).notNull().default("COMMITTED"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -174,4 +207,110 @@ export const batteryPassports = pgTable("battery_passports", {
   status: varchar("status", { length: 50 }).notNull().default("ACTIVE"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// --- BILLING, SUBSCRIPTIONS & LEDGER MODELS ---
+
+export const subscriptions = pgTable("subscriptions", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  tenantId: integer("tenant_id").references(() => tenants.id),
+  planId: varchar("plan_id", { length: 100 }).notNull(),
+  planName: varchar("plan_name", { length: 255 }).notNull(),
+  tier: varchar("tier", { length: 100 }).notNull(),
+  amountMonthly: doublePrecision("amount_monthly").notNull(),
+  currency: varchar("currency", { length: 10 }).notNull().default("USD"),
+  billingCycle: varchar("billing_cycle", { length: 100 }).notNull(),
+  paymentMethod: varchar("payment_method", { length: 255 }).notNull(),
+  status: varchar("status", { length: 50 }).notNull().default("Active"),
+  currentPeriodStart: timestamp("current_period_start").defaultNow().notNull(),
+  currentPeriodEnd: timestamp("current_period_end").notNull(),
+  razorpaySubscriptionId: varchar("razorpay_subscription_id", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const billingInvoices = pgTable("billing_invoices", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  tenantId: integer("tenant_id").references(() => tenants.id),
+  subscriptionId: varchar("subscription_id", { length: 255 }),
+  invoiceNumber: varchar("invoice_number", { length: 100 }).notNull(),
+  amount: varchar("amount", { length: 50 }).notNull(),
+  amountNumeric: doublePrecision("amount_numeric").notNull(),
+  currency: varchar("currency", { length: 10 }).notNull().default("USD"),
+  status: varchar("status", { length: 50 }).notNull().default("Paid"),
+  billingPeriod: varchar("billing_period", { length: 100 }).notNull(),
+  razorpayPaymentId: varchar("razorpay_payment_id", { length: 255 }),
+  pdfUrl: varchar("pdf_url", { length: 512 }).default("#"),
+  paidAt: timestamp("paid_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const billingOrders = pgTable("billing_orders", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  tenantId: integer("tenant_id").references(() => tenants.id),
+  planId: varchar("plan_id", { length: 100 }).notNull(),
+  amount: doublePrecision("amount").notNull(),
+  currency: varchar("currency", { length: 10 }).notNull().default("USD"),
+  razorpayOrderId: varchar("razorpay_order_id", { length: 255 }),
+  razorpayPaymentId: varchar("razorpay_payment_id", { length: 255 }),
+  razorpaySignature: varchar("razorpay_signature", { length: 255 }),
+  status: varchar("status", { length: 50 }).notNull().default("CREATED"),
+  mode: varchar("mode", { length: 50 }).notNull().default("DEV_TEST_MODE"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const vehicles = pgTable("vehicles", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  tenantId: integer("tenant_id").references(() => tenants.id),
+  name: varchar("name", { length: 255 }).notNull(),
+  fleet: varchar("fleet", { length: 100 }).notNull().default("Metro North"),
+  status: varchar("status", { length: 50 }).notNull().default("healthy"),
+  batteryId: varchar("battery_id", { length: 255 }).notNull(),
+  deviceId: varchar("device_id", { length: 255 }),
+  thermalRisk: varchar("thermal_risk", { length: 50 }).notNull().default("info"),
+  coolingHealth: varchar("cooling_health", { length: 50 }).notNull().default("healthy"),
+  sensorHealth: varchar("sensor_health", { length: 50 }).notNull().default("healthy"),
+  maintenancePriority: varchar("maintenance_priority", { length: 50 }).notNull().default("low"),
+  location: varchar("location", { length: 255 }).notNull().default("Depot A"),
+  tmax: doublePrecision("tmax").notNull().default(25.0),
+  tmin: doublePrecision("tmin").notNull().default(24.0),
+  tavg: doublePrecision("tavg").notNull().default(24.5),
+  deltaT: doublePrecision("delta_t").notNull().default(1.0),
+  dTdt: doublePrecision("dtdt").notNull().default(0.0),
+  lastUpdate: timestamp("last_update").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const workOrders = pgTable("work_orders", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  tenantId: integer("tenant_id").references(() => tenants.id),
+  vehicleId: varchar("vehicle_id", { length: 255 }).notNull(),
+  packId: varchar("pack_id", { length: 255 }),
+  issue: text("issue").notNull(),
+  priority: varchar("priority", { length: 50 }).notNull().default("routine"),
+  assignedTo: varchar("assigned_to", { length: 255 }).notNull().default("Fleet Technician"),
+  status: varchar("status", { length: 50 }).notNull().default("open"),
+  thermalIssue: text("thermal_issue"),
+  recommendation: text("recommendation"),
+  evidence: text("evidence"),
+  dueDate: timestamp("due_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const reports = pgTable("reports", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  tenantId: integer("tenant_id").references(() => tenants.id),
+  type: varchar("type", { length: 100 }).notNull(),
+  scope: varchar("scope", { length: 255 }).notNull(),
+  status: varchar("status", { length: 50 }).notNull().default("ready"),
+  summary: text("summary").notNull(),
+  reference: varchar("reference", { length: 255 }).notNull(),
+  recordCount: integer("record_count").notNull().default(0),
+  reportData: jsonb("report_data"),
+  generatedAt: timestamp("generated_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });

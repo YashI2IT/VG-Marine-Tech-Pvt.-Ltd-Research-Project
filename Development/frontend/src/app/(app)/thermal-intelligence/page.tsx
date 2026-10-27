@@ -8,8 +8,8 @@ import { dashboardSummary } from "@/data/mock";
 import Link from "next/link";
 
 const items = [
-  { href: "/thermal-intelligence/hotspots", title: "Hotspots", body: "Localized cell heating and spatial ΔT.", badge: dashboardSummary.hotspot.severity },
-  { href: "/thermal-intelligence/cooling", title: "Cooling health", body: "Expected vs observed thermal rejection.", badge: dashboardSummary.cooling.status },
+  { href: "/thermal-intelligence/hotspots", title: "Hotspots", body: "Localized cell heating and spatial ΔT.", badge: dashboardSummary.hotspot?.severity ?? ("critical" as const) },
+  { href: "/thermal-intelligence/cooling", title: "Cooling health", body: "Expected vs observed thermal rejection.", badge: dashboardSummary.cooling?.status ?? ("degraded" as const) },
   { href: "/thermal-intelligence/sensors", title: "Sensor health", body: "Physical vs virtual residuals.", badge: "watch" as const },
   { href: "/thermal-intelligence/aging", title: "Thermal aging", body: "Exposure hours — not capacity SOH.", badge: "warning" as const },
   { href: "/thermal-intelligence/forecast", title: "Temperature forecast", body: "Horizon, uncertainty, time-to-limit.", badge: "critical" as const },
